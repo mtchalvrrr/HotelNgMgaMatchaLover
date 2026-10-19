@@ -9,6 +9,7 @@ com/mtchlvr/hotel/MtchlvrHotelApplication.class
 com/mtchlvr/hotel/web/ChatController$ChatResponse.class
 com/mtchlvr/hotel/web/ChatController.class
 com/mtchlvr/hotel/repo/ReservationRepository.class
+com/mtchlvr/hotel/service/GroqChatService.class
 com/mtchlvr/hotel/web/HotelController$RegisterForm.class
 com/mtchlvr/hotel/service/CaptchaService.class
 com/mtchlvr/hotel/repo/RoomRepository.class
@@ -17,4 +18,3 @@ com/mtchlvr/hotel/service/DataSeeder.class
 com/mtchlvr/hotel/model/AppUser.class
 com/mtchlvr/hotel/repo/ReportRepository.class
 com/mtchlvr/hotel/web/ChatController$ChatRequest.class
-com/mtchlvr/hotel/service/GeminiChatService.class
