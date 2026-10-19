@@ -3,7 +3,7 @@
 <body>
 <div th:fragment="nav"><header class="nav">
   <a class="brand" href="/"><span class="brand-mark">m</span><span>mtchlvr <small>HOTEL</small></span></a>
-  <nav><a href="/rooms">Rooms</a><a sec:authorize="hasRole('CUSTOMER')" href="/customer/reservations">My reservations</a><a sec:authorize="hasRole('MANAGER')" href="/manager">Manager dashboard</a></nav>
+  <nav><a sec:authorize="hasRole('CUSTOMER')" href="/customer/reservations">My reservations</a><a sec:authorize="hasRole('MANAGER')" href="/manager">Manager dashboard</a></nav>
   <div class="nav-actions"><a class="text-button" href="/login" sec:authorize="isAnonymous()">Sign in</a><form th:action="@{/logout}" method="post" sec:authorize="isAuthenticated()" data-confirm="Are you sure you want to log out?"><button class="text-button" type="submit">Log out ↗</button></form></div>
 </header><div th:replace="~{fragments :: managerConfirm}"></div></div>
 <div th:fragment="alerts" class="alerts">

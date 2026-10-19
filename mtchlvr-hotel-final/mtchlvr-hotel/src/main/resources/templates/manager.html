@@ -1,1 +1,70 @@
-<!doctype html><html lang="en" xmlns:th="http://www.thymeleaf.org"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Manager · mtchlvr hotel</title><link rel="stylesheet" href="/css/style.css"></head><body><div th:replace="~{fragments :: nav}"></div><main class="page-wrap manager-page"><div th:replace="~{fragments :: alerts}"></div><h1 class="page-title">Manager dashboard</h1><section id="overview" class="stats-grid"><div class="stat-card"><span>Total rooms</span><strong th:text="${#lists.size(rooms)}">12</strong></div><div class="stat-card"><span>Total reservations</span><strong th:text="${#lists.size(reservations)}">0</strong></div><div class="stat-card"><span>Pending review</span><strong th:text="${#lists.size(reservations.?[status == 'PENDING' or status == 'CANCELLATION_REQUESTED'])}">0</strong></div></section><section class="manager-links"><a class="manager-link" href="/manager/reservation-requests"><span>Reservation &amp; cancellation requests</span><b>↗</b></a><a class="manager-link" href="/manager/history"><span>Reservation history</span><b>↗</b></a><a class="manager-link" href="/manager/room-management"><span>Room management</span><b>↗</b></a><a class="manager-link" href="/manager/reports"><span>Reports</span><b>↗</b></a></section></main><footer><a class="brand" href="/"><span class="brand-mark">m</span><span>mtchlvr <small>HOTEL</small></span></a><span>© 2026 mtchlvr hotel</span></footer><script src="/js/app.js"></script></body></html>
+```html
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Manager · mtchlvr hotel</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div th:replace="~{fragments :: nav}"></div>
+
+    <main class="page-wrap manager-page">
+        <div th:replace="~{fragments :: alerts}"></div>
+
+        <h1 class="page-title">Manager dashboard</h1>
+
+        <section id="overview" class="stats-grid">
+            <div class="stat-card">
+                <span>Total rooms</span>
+                <strong th:text="${#lists.size(rooms)}">12</strong>
+            </div>
+
+            <div class="stat-card">
+                <span>Total reservations</span>
+                <strong th:text="${#lists.size(reservations)}">0</strong>
+            </div>
+
+            <div class="stat-card">
+                <span>Pending review</span>
+                <strong th:text="${#lists.size(reservations.?[status == 'PENDING' or status == 'CANCELLATION_REQUESTED'])}">0</strong>
+            </div>
+        </section>
+
+        <section class="manager-links">
+            <a class="manager-link" href="/manager/reservation-requests">
+                <span>Reservation &amp; cancellation requests</span>
+                <b>↗</b>
+            </a>
+
+            <a class="manager-link" href="/manager/history">
+                <span>Reservation history</span>
+                <b>↗</b>
+            </a>
+
+            <!-- Restored Room Management link -->
+            <a class="manager-link" href="/manager/room-management">
+                <span>Room management</span>
+                <b>↗</b>
+            </a>
+
+            <a class="manager-link" href="/manager/reports">
+                <span>Reports</span>
+                <b>↗</b>
+            </a>
+        </section>
+    </main>
+
+    <footer>
+        <a class="brand" href="/">
+            <span class="brand-mark">m</span>
+            <span>mtchlvr <small>HOTEL</small></span>
+        </a>
+        <span>© 2026 mtchlvr hotel</span>
+    </footer>
+
+    <script src="/js/app.js"></script>
+</body>
+</html>
+```
