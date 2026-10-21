@@ -10,6 +10,24 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   document.querySelectorAll('input[name="checkOut"]').forEach((input) => input.min = localDate);
 
+  const checkoutReminder = document.getElementById("checkout-day-reminder");
+  if (checkoutReminder) {
+    const reminderText = checkoutReminder.textContent.replace(/\s+/g, " ").trim();
+    const reminderKey = "mtchlvr-checkout-reminder:" + localDate + ":" + reminderText;
+    let alreadyShown = false;
+
+    try {
+      alreadyShown = sessionStorage.getItem(reminderKey) === "shown";
+    } catch (_) {}
+
+    if (!alreadyShown) {
+      try {
+        sessionStorage.setItem(reminderKey, "shown");
+      } catch (_) {}
+      window.alert(reminderText);
+    }
+  }
+
   document.querySelectorAll("[data-password-toggle]").forEach((button) => {
     button.addEventListener("click", () => {
       const input = document.getElementById(button.dataset.passwordToggle);
@@ -48,4 +66,152 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     document.addEventListener("keydown", event => { if (event.key === "Escape" && !modal.hidden) close(); });
   }
+
+  // Validate full reservation intervals and display active room occupancy.
+  document.querySelectorAll('form.booking-form').forEach((form) => {
+    const checkIn = form.querySelector('input[name="checkIn"]');
+    const checkInTime = form.querySelector('input[name="checkInTime"]');
+    const checkOut = form.querySelector('input[name="checkOut"]');
+    const checkOutTime = form.querySelector('input[name="checkOutTime"]');
+
+    if (!checkIn || !checkInTime || !checkOut || !checkOutTime) return;
+
+    const validateInterval = () => {
+      checkOut.min = checkIn.value || localDate;
+      if (!checkIn.value || !checkOut.value) {
+        checkOut.setCustomValidity("");
+        return;
+      }
+      const start = `${checkIn.value}T${checkInTime.value || "14:00"}`;
+      const end = `${checkOut.value}T${checkOutTime.value || "12:00"}`;
+      checkOut.setCustomValidity(end > start ? "" :
+        "Check-out must be later than check-in.");
+    };
+
+    [checkIn, checkInTime, checkOut, checkOutTime].forEach((input) => {
+      input.addEventListener("change", validateInterval);
+    });
+    form.addEventListener("submit", (event) => {
+      validateInterval();
+      if (!form.checkValidity()) {
+        event.preventDefault();
+        form.reportValidity();
+      }
+    });
+  });
+
+  document.querySelectorAll(".room-availability[data-room-id]").forEach(async (panel) => {
+    const message = panel.querySelector("[data-availability-message]");
+    const list = panel.querySelector("[data-availability-list]");
+    const card = panel.closest(".room-card");
+    const openButton = card?.querySelector(".room-availability-toggle");
+    const closeButton = panel.querySelector(".availability-popup-close");
+
+    // Keep the original position so the popup can be restored after closing.
+    const originalParent = panel.parentNode;
+    const originalNextSibling = panel.nextSibling;
+    let isOpen = false;
+
+    const closePopup = (restoreFocus = false) => {
+      if (!isOpen) return;
+
+      panel.hidden = true;
+
+      if (originalParent) {
+        if (originalNextSibling && originalNextSibling.parentNode === originalParent) {
+          originalParent.insertBefore(panel, originalNextSibling);
+        } else {
+          originalParent.appendChild(panel);
+        }
+      }
+
+      isOpen = false;
+      openButton?.setAttribute("aria-expanded", "false");
+      document.body.classList.remove("availability-popup-open");
+
+      if (restoreFocus) openButton?.focus();
+    };
+
+    openButton?.addEventListener("click", () => {
+      // Move it out of the transformed room card to avoid hover/stacking issues.
+      document.body.appendChild(panel);
+      panel.hidden = false;
+      isOpen = true;
+      openButton.setAttribute("aria-expanded", "true");
+      document.body.classList.add("availability-popup-open");
+      closeButton?.focus();
+    });
+
+    closeButton?.addEventListener("click", () => closePopup(true));
+
+    // Close when clicking outside the popup or pressing Escape.
+    document.addEventListener("click", (event) => {
+      if (
+        isOpen &&
+        !panel.contains(event.target) &&
+        event.target !== openButton &&
+        !openButton?.contains(event.target)
+      ) {
+        closePopup();
+      }
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (isOpen && event.key === "Escape") {
+        closePopup(true);
+      }
+    });
+
+    try {
+      const response = await fetch(
+        `/api/rooms/${encodeURIComponent(panel.dataset.roomId)}/availability`,
+        { headers: { "Accept": "application/json" } }
+      );
+      if (!response.ok) throw new Error("Schedule could not be loaded.");
+
+      const bookings = await response.json();
+      list.replaceChildren();
+
+      if (!bookings.length) {
+        message.textContent = "No existing reservations. Choose your preferred dates and times.";
+        return;
+      }
+
+      bookings.sort((a, b) =>
+        `${a.checkIn}T${a.checkInTime || "14:00"}`.localeCompare(
+          `${b.checkIn}T${b.checkInTime || "14:00"}`
+        )
+      );
+
+      bookings.forEach((booking) => {
+        const item = document.createElement("li");
+        item.className = "availability-booking";
+
+        const status = (booking.status || "PENDING").toUpperCase();
+        const friendlyStatus = status === "APPROVED" ? "Reserved"
+          : status === "CANCELLATION_REQUESTED" ? "Cancellation requested"
+          : status === "PENDING" ? "Pending"
+          : status.replaceAll("_", " ");
+
+        const dateLine = document.createElement("div");
+        dateLine.className = "availability-date";
+        dateLine.textContent =
+          `${booking.checkIn} · ${booking.checkInTime || "14:00"} – ` +
+          `${booking.checkOut} · ${booking.checkOutTime || "12:00"}`;
+
+        const statusLine = document.createElement("span");
+        statusLine.className = "availability-status availability-status-" +
+          status.toLowerCase().replaceAll("_", "-");
+        statusLine.textContent = friendlyStatus;
+
+        item.append(dateLine, statusLine);
+        list.appendChild(item);
+      });
+
+      message.textContent = "Occupied dates and times";
+    } catch (_) {
+      message.textContent = "Room schedule is temporarily unavailable. Please try again later.";
+    }
+  });
+
 });

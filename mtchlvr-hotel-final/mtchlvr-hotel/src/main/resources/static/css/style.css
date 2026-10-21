@@ -72,3 +72,171 @@ body{font-weight:500}p,li,label,input,select,textarea,td{font-weight:600}.eyebro
 @media(max-width:580px){.history-disclosure>summary{padding:15px}}
 
 .manager-links{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:8px}.manager-link{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:22px;border:1px solid var(--line);border-radius:14px;background:#fff;font-size:14px;font-weight:800;color:var(--forest);transition:transform .18s,box-shadow .18s}.manager-link:hover{transform:translateY(-2px);box-shadow:var(--shadow)}.manager-link b{font-size:20px}@media(max-width:580px){.manager-links{grid-template-columns:1fr}.manager-link{padding:18px}}
+
+/* Room reservation schedule popup — mtchlvr hotel theme */
+.room-availability-toggle {
+  width: 100%;
+  margin: 0 0 18px;
+  cursor: pointer;
+}
+
+.room-availability[hidden] {
+  display: none !important;
+}
+
+.room-availability:not([hidden]) {
+  position: fixed;
+  z-index: 2000;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(92vw, 540px);
+  max-height: min(78vh, 720px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: clamp(20px, 4vw, 30px);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--white);
+  color: var(--ink);
+  box-shadow: 0 0 0 100vmax rgba(32, 53, 28, 0.58),
+              0 22px 65px rgba(32, 53, 28, 0.2);
+  animation: availability-popup-in 160ms ease-out;
+}
+
+body.availability-popup-open {
+  overflow: hidden;
+}
+
+@keyframes availability-popup-in {
+  from { opacity: 0; margin-top: 8px; }
+  to { opacity: 1; margin-top: 0; }
+}
+
+.availability-popup-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 22px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--line);
+}
+
+.availability-popup-header strong {
+  display: block;
+  color: var(--forest);
+  font-family: Georgia, serif;
+  font-size: clamp(22px, 4vw, 29px);
+  font-weight: 500;
+  letter-spacing: -0.035em;
+}
+
+.availability-popup-header p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.availability-popup-close {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: #fffefb;
+  color: var(--forest);
+  font-size: 25px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s;
+}
+
+.availability-popup-close:hover,
+.availability-popup-close:focus-visible {
+  background: var(--forest);
+  color: white;
+  outline: none;
+}
+
+.room-availability [data-availability-message] {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.room-availability ul {
+  display: grid;
+  gap: 12px;
+  padding: 0;
+  margin: 16px 0 0;
+  list-style: none;
+}
+
+.room-availability li.availability-booking {
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--leaf);
+  border-radius: 12px;
+  background: #fffefb;
+  overflow-wrap: anywhere;
+}
+
+.availability-date {
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1.7;
+}
+
+.availability-status {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 10px;
+  padding: 5px 10px;
+  border-radius: 30px;
+  background: #f1f1e9;
+  color: #64705b;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.025em;
+}
+
+.availability-status-approved {
+  background: #e8f5e0;
+  color: #2a7c13;
+}
+
+.availability-status-pending,
+.availability-status-cancellation-requested {
+  background: #fff3d8;
+  color: #92630d;
+}
+
+.availability-status-rejected,
+.availability-status-cancelled {
+  background: #ffede6;
+  color: #a1462e;
+}
+
+@media (max-width: 580px) {
+  .room-availability:not([hidden]) {
+    width: calc(100vw - 28px);
+    max-height: 82vh;
+    padding: 20px;
+    border-radius: 15px;
+  }
+
+  .room-availability li.availability-booking {
+    padding: 13px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .room-availability:not([hidden]) {
+    animation: none;
+  }
+}

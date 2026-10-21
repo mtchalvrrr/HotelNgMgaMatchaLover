@@ -41,6 +41,31 @@ class ReservationServiceTest {
     }
 
     @Test
+    void acceptsSameDayReservationAndLeavesItPendingForManagerApproval() {
+        LocalDate today = LocalDate.now();
+        AppUser customer = mock(AppUser.class);
+        Room room = mock(Room.class);
+
+        when(users.findByEmailIgnoreCase("guest@example.com"))
+            .thenReturn(Optional.of(customer));
+        when(rooms.findById(1L)).thenReturn(Optional.of(room));
+        when(room.getId()).thenReturn(1L);
+        when(room.isAvailable()).thenReturn(true);
+        when(room.isActive()).thenReturn(true);
+        when(reservations.findAll()).thenReturn(List.of());
+        when(reservations.save(any(Reservation.class)))
+            .thenAnswer(invocation -> invocation.getArgument(0));
+
+        Reservation result = service.reserve(
+            "guest@example.com", 1L, today, today.plusDays(1));
+
+        assertEquals(today, result.getCheckIn());
+        assertEquals(today.plusDays(1), result.getCheckOut());
+        assertEquals("PENDING", result.getStatus());
+        verify(reservations).save(any(Reservation.class));
+    }
+
+    @Test
     void rejectsApprovalWhenAnotherActiveReservationOverlaps() {
         Room room = mock(Room.class);
         when(room.getId()).thenReturn(7L);

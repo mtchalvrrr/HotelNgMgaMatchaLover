@@ -70,17 +70,31 @@ public class HotelController {
             users.save(customer);
         }
         model.addAttribute("customer", customer);
-        model.addAttribute("reservations", reservations.findByCustomerEmailIgnoreCaseOrderByCreatedAtDesc(auth.getName()));
+        java.util.List<Reservation> customerReservations =
+                reservations.findByCustomerEmailIgnoreCaseOrderByCreatedAtDesc(auth.getName())
+                        .stream()
+                        .filter(r -> !"CANCELLED".equals(r.getStatus()))
+                        .toList();
+        model.addAttribute("reservations", customerReservations);
+        model.addAttribute("checkoutTodayReservations", customerReservations.stream()
+                .filter(r -> "APPROVED".equals(r.getStatus()))
+                .filter(r -> r.getCheckOut().equals(LocalDate.now()))
+                .toList());
         return "my-reservations";
     }
     @PostMapping("/customer/reservations") public String makeReservation(Authentication auth,
             @RequestParam Long roomId, @RequestParam String checkIn, @RequestParam String checkOut,
+            @RequestParam(defaultValue = "14:00") String checkInTime,
+            @RequestParam(defaultValue = "12:00") String checkOutTime,
             RedirectAttributes flash) {
         try {
-            reservationService.reserve(auth.getName(), roomId, LocalDate.parse(checkIn), LocalDate.parse(checkOut));
+            reservationService.reserve(auth.getName(), roomId,
+                    LocalDate.parse(checkIn), java.time.LocalTime.parse(checkInTime),
+                    LocalDate.parse(checkOut), java.time.LocalTime.parse(checkOutTime));
             flash.addFlashAttribute("success", "Reservation request submitted.");
         } catch (Exception ex) {
-            flash.addFlashAttribute("error", ex.getMessage() == null ? "Could not create reservation." : ex.getMessage());
+            flash.addFlashAttribute("error", ex.getMessage() == null
+                    ? "Could not create reservation." : ex.getMessage());
         }
         return "redirect:/customer/reservations";
     }
@@ -97,6 +111,28 @@ public class HotelController {
             flash.addFlashAttribute("success", "Cancellation request sent to the manager.");
         }
         return "redirect:/customer/reservations";
+    }
+
+    @GetMapping("/api/rooms/{roomId}/availability")
+    @ResponseBody
+    public java.util.List<java.util.Map<String, String>> roomAvailability(@PathVariable Long roomId) {
+        return reservations.findAll().stream()
+            .filter(r -> r.getRoom().getId().equals(roomId))
+            .filter(r -> !java.util.List.of("REJECTED", "CANCELLED").contains(r.getStatus()))
+            .map(r -> {
+                java.time.LocalTime inTime = r.getCheckInTime() == null
+                        ? java.time.LocalTime.of(14, 0) : r.getCheckInTime();
+                java.time.LocalTime outTime = r.getCheckOutTime() == null
+                        ? java.time.LocalTime.NOON : r.getCheckOutTime();
+                return java.util.Map.of(
+                    "checkIn", r.getCheckIn().toString(),
+                    "checkOut", r.getCheckOut().toString(),
+                    "checkInTime", inTime.toString(),
+                    "checkOutTime", outTime.toString(),
+                    "status", r.getStatus()
+                );
+            })
+            .toList();
     }
 
     @GetMapping("/manager") public String manager(Model model) {
