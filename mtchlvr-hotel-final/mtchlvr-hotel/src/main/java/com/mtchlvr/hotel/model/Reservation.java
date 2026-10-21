@@ -2,6 +2,7 @@ package com.mtchlvr.hotel.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.Instant;
 
 @Entity
@@ -15,6 +16,8 @@ public class Reservation {
     private Room room;
     @Column(nullable = false) private LocalDate checkIn;
     @Column(nullable = false) private LocalDate checkOut;
+    @Column(name = "check_in_time") private LocalTime checkInTime;
+    @Column(name = "check_out_time") private LocalTime checkOutTime;
     @Column(nullable = false) private String status = "PENDING";
     @Column(nullable = false) private Instant createdAt = Instant.now();
     // Soft-hide a processed record from manager history without deleting the reservation itself.
@@ -29,9 +32,21 @@ public class Reservation {
     public Room getRoom() { return room; }
     public LocalDate getCheckIn() { return checkIn; }
     public LocalDate getCheckOut() { return checkOut; }
+    public LocalTime getCheckInTime() { return checkInTime; }
+    public LocalTime getCheckOutTime() { return checkOutTime; }
+    public void setCheckInTime(LocalTime value) { checkInTime = value; }
+    public void setCheckOutTime(LocalTime value) { checkOutTime = value; }
     public String getStatus() { return status; }
     public Instant getCreatedAt() { return createdAt; }
     public boolean isHistoryVisible() { return historyVisible == null || historyVisible; }
     public void setHistoryVisible(boolean visible) { historyVisible = visible; }
+    public long getNights() {
+        return java.time.temporal.ChronoUnit.DAYS.between(checkIn, checkOut);
+    }
+
+    public java.math.BigDecimal getTotalCost() {
+        return room.getNightlyRate().multiply(java.math.BigDecimal.valueOf(getNights()));
+    }
+
     public void setStatus(String v) { status = v; }
 }

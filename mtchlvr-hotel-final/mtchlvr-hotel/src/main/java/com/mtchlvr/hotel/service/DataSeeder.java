@@ -17,12 +17,28 @@ public class DataSeeder {
             addType(rooms, "Deluxe", "2", new BigDecimal("2600"), 2);
             addType(rooms, "Suite", "3", new BigDecimal("4200"), 2);
             addType(rooms, "Family", "4", new BigDecimal("3500"), 4);
+            for (AppUser user : users.findAll()) {
+                if ("CUSTOMER".equals(user.getRole())
+                        && (user.getCustomerCode() == null || user.getCustomerCode().isBlank())) {
+                    user.setCustomerCode(generateCustomerCode(users));
+                    users.save(user);
+                }
+            }
             if (!users.existsByEmailIgnoreCase("cedihmatchalover@gmail.com")) {
                 users.save(new AppUser("cedihmatchalover@gmail.com", encoder.encode("5201314"),
                     "Hotel Manager", "MANAGER", true));
             }
         };
     }
+    private String generateCustomerCode(UserRepository users) {
+        String code;
+        do {
+            int digits = java.util.concurrent.ThreadLocalRandom.current().nextInt(10_000);
+            code = String.format(java.util.Locale.ROOT, "mtchlvr-%04d-5201314", digits);
+        } while (users.existsByCustomerCode(code));
+        return code;
+    }
+
     private void addType(RoomRepository rooms, String type, String prefix, BigDecimal rate, int capacity) {
         for (int i = 1; i <= 3; i++) {
             String number = prefix + "0" + i;

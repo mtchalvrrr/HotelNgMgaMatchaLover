@@ -38,6 +38,21 @@ public class HotelController {
     @GetMapping("/rooms") public String browse(Model model) {
         model.addAttribute("rooms", rooms.findByActiveTrueOrderByTypeAscRoomNumberAsc()); return "rooms";
     }
+    @GetMapping("/api/rooms/{roomId}/availability")
+    @ResponseBody
+    public java.util.List<java.util.Map<String, String>> roomAvailability(@PathVariable Long roomId) {
+        return reservations.findAll().stream()
+            .filter(r -> r.getRoom().getId().equals(roomId))
+            .filter(r -> !java.util.List.of("REJECTED", "CANCELLED").contains(r.getStatus()))
+            .map(r -> java.util.Map.of(
+                "checkIn", r.getCheckIn().toString(),
+                "checkOut", r.getCheckOut().toString(),
+                "checkInTime", r.getCheckInTime() == null ? "14:00" : r.getCheckInTime().toString(),
+                "checkOutTime", r.getCheckOutTime() == null ? "12:00" : r.getCheckOutTime().toString(),
+                "status", r.getStatus()))
+            .toList();
+    }
+
     @GetMapping("/login") public String login(Model model) { return "login"; }
 
     @GetMapping("/register") public String register(Model model, HttpSession session) {
@@ -56,20 +71,39 @@ public class HotelController {
             errors.rejectValue("email", "duplicate", "An account with this email already exists.");
         }
         if (errors.hasErrors()) return "register";
-        users.save(new AppUser(normalizedEmail.toLowerCase(java.util.Locale.ROOT), encoder.encode(form.password),
-                form.fullName.trim(), "CUSTOMER", true));
+        AppUser newCustomer = new AppUser(normalizedEmail.toLowerCase(java.util.Locale.ROOT),
+                encoder.encode(form.password), form.fullName.trim(), "CUSTOMER", true);
+        newCustomer.setCustomerCode(generateCustomerCode());
+        users.save(newCustomer);
         flash.addFlashAttribute("success", "Account created. You can now sign in.");
         return "redirect:/login";
     }
     @GetMapping("/customer/reservations") public String myReservations(Authentication auth, Model model) {
+        // MTCHLVR_CHECKOUT_COMPLETION
+        // Finish approved stays after the checkout date has passed.
+        for (com.mtchlvr.hotel.model.Reservation stay :
+                reservations.findByCustomerEmailIgnoreCaseOrderByCreatedAtDesc(auth.getName())) {
+            if ("APPROVED".equals(stay.getStatus())
+                    && stay.getCheckOut() != null
+                    && stay.getCheckOut().isBefore(java.time.LocalDate.now())) {
+                stay.setStatus("COMPLETED");
+                reservations.save(stay);
+            }
+        }
+        // END MTCHLVR_CHECKOUT_COMPLETION
+
+        model.addAttribute("customer", users.findByEmailIgnoreCase(auth.getName()).orElseThrow());
         model.addAttribute("reservations", reservations.findByCustomerEmailIgnoreCaseOrderByCreatedAtDesc(auth.getName()));
         return "my-reservations";
     }
     @PostMapping("/customer/reservations") public String makeReservation(Authentication auth,
-            @RequestParam Long roomId, @RequestParam String checkIn, @RequestParam String checkOut,
+            @RequestParam Long roomId, @RequestParam String checkIn, @RequestParam String checkInTime,
+            @RequestParam String checkOut, @RequestParam String checkOutTime,
             RedirectAttributes flash) {
         try {
-            reservationService.reserve(auth.getName(), roomId, LocalDate.parse(checkIn), LocalDate.parse(checkOut));
+            reservationService.reserve(auth.getName(), roomId,
+                LocalDate.parse(checkIn), java.time.LocalTime.parse(checkInTime),
+                LocalDate.parse(checkOut), java.time.LocalTime.parse(checkOutTime));
             flash.addFlashAttribute("success", "Reservation request submitted.");
         } catch (Exception ex) {
             flash.addFlashAttribute("error", ex.getMessage() == null ? "Could not create reservation." : ex.getMessage());
@@ -94,6 +128,10 @@ public class HotelController {
     @GetMapping("/manager") public String manager(Model model) {
         model.addAttribute("rooms", rooms.findAll());
         model.addAttribute("reservations", reservations.findAllByOrderByCreatedAtDesc());
+        model.addAttribute("occupancyReservations", reservations.findAllByOrderByCreatedAtDesc()
+            .stream()
+            .filter(r -> !java.util.List.of("REJECTED", "CANCELLED").contains(r.getStatus()))
+            .toList());
         model.addAttribute("reports", reports.findAllByOrderByCreatedAtDesc());
         return "manager";
     }
@@ -244,5 +282,15 @@ public static class RegisterForm {
         this.confirmPassword = confirmPassword;
     }
 }
+
+
+    private String generateCustomerCode() {
+        String code;
+        do {
+            int digits = java.util.concurrent.ThreadLocalRandom.current().nextInt(10_000);
+            code = String.format(java.util.Locale.ROOT, "mtchlvr-%04d-5201314", digits);
+        } while (users.existsByCustomerCode(code));
+        return code;
+    }
 
 }
