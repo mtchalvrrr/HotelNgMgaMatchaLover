@@ -56,12 +56,20 @@ public class HotelController {
             errors.rejectValue("email", "duplicate", "An account with this email already exists.");
         }
         if (errors.hasErrors()) return "register";
-        users.save(new AppUser(normalizedEmail.toLowerCase(java.util.Locale.ROOT), encoder.encode(form.password),
-                form.fullName.trim(), "CUSTOMER", true));
+        AppUser newCustomer = new AppUser(normalizedEmail.toLowerCase(java.util.Locale.ROOT),
+                encoder.encode(form.password), form.fullName.trim(), "CUSTOMER", true);
+        newCustomer.setCustomerCode(generateCustomerCode());
+        users.save(newCustomer);
         flash.addFlashAttribute("success", "Account created. You can now sign in.");
         return "redirect:/login";
     }
     @GetMapping("/customer/reservations") public String myReservations(Authentication auth, Model model) {
+        AppUser customer = users.findByEmailIgnoreCase(auth.getName()).orElseThrow();
+        if (customer.getCustomerCode() == null || customer.getCustomerCode().isBlank()) {
+            customer.setCustomerCode(generateCustomerCode());
+            users.save(customer);
+        }
+        model.addAttribute("customer", customer);
         model.addAttribute("reservations", reservations.findByCustomerEmailIgnoreCaseOrderByCreatedAtDesc(auth.getName()));
         return "my-reservations";
     }
@@ -94,6 +102,17 @@ public class HotelController {
     @GetMapping("/manager") public String manager(Model model) {
         model.addAttribute("rooms", rooms.findAll());
         model.addAttribute("reservations", reservations.findAllByOrderByCreatedAtDesc());
+        java.util.List<Reservation> occupancyReservations = reservations.findAllByOrderByCreatedAtDesc().stream()
+                .filter(r -> !java.util.List.of("REJECTED", "CANCELLED").contains(r.getStatus()))
+                .toList();
+        for (Reservation reservation : occupancyReservations) {
+            AppUser customer = reservation.getCustomer();
+            if (customer.getCustomerCode() == null || customer.getCustomerCode().isBlank()) {
+                customer.setCustomerCode(generateCustomerCode());
+                users.save(customer);
+            }
+        }
+        model.addAttribute("occupancyReservations", occupancyReservations);
         model.addAttribute("reports", reports.findAllByOrderByCreatedAtDesc());
         return "manager";
     }
@@ -244,5 +263,15 @@ public static class RegisterForm {
         this.confirmPassword = confirmPassword;
     }
 }
+
+
+    private String generateCustomerCode() {
+        String code;
+        do {
+            int digits = java.util.concurrent.ThreadLocalRandom.current().nextInt(10_000);
+            code = String.format(java.util.Locale.ROOT, "mtchlvr-%04d-5201314", digits);
+        } while (users.existsByCustomerCode(code));
+        return code;
+    }
 
 }

@@ -29,6 +29,12 @@ public class Reservation {
     public Room getRoom() { return room; }
     public LocalDate getCheckIn() { return checkIn; }
     public LocalDate getCheckOut() { return checkOut; }
+    public long getNights() {
+        return java.time.temporal.ChronoUnit.DAYS.between(checkIn, checkOut);
+    }
+    public java.math.BigDecimal getTotalCost() {
+        return room.getNightlyRate().multiply(java.math.BigDecimal.valueOf(getNights()));
+    }
     public String getStatus() { return status; }
     public Instant getCreatedAt() { return createdAt; }
     public boolean isHistoryVisible() { return historyVisible == null || historyVisible; }
