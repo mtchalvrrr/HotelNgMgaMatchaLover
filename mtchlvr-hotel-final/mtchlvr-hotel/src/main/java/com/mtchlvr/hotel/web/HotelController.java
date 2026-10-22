@@ -60,8 +60,8 @@ public class HotelController {
                 encoder.encode(form.password), form.fullName.trim(), "CUSTOMER", true);
         newCustomer.setCustomerCode(generateCustomerCode());
         users.save(newCustomer);
-        flash.addFlashAttribute("success", "Account created. You can now sign in.");
-        return "redirect:/login";
+        flash.addFlashAttribute("success", "Account created successfully!");
+        return "redirect:/";
     }
     @GetMapping("/customer/reservations") public String myReservations(Authentication auth, Model model) {
         AppUser customer = users.findByEmailIgnoreCase(auth.getName()).orElseThrow();

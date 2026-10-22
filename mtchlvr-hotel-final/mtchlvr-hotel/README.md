@@ -28,8 +28,10 @@ The SQLite database is created locally at `./data/mtchlvr.db`.
 ## Shared sign-in and local demo manager
 Customers and the manager use the **same `/login` page**. After sign-in, manager accounts go to `/manager`; customer accounts go to the customer-facing home page (or the page they originally requested).
 
-- Email: `manager@mtchlvr.local`
-- Password: `ChangeMe123!`
+- Email: `cedihmatchalover@gmail.com`
+- Password: `5201314`
+
+These are mock capstone demo credentials only. Do not reuse them for any real account.
 
 **Change the demo password before using real customer information.** This is a local starter, not a production deployment.
 

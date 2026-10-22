@@ -1,3 +1,13 @@
+// Revalidate protected pages restored through browser Back/Forward.
+const sensitiveHistoryPath =
+  /^\/(?:customer(?:\/|$)|manager(?:\/|$))/.test(window.location.pathname);
+
+if (sensitiveHistoryPath) {
+  window.addEventListener("pageshow", (event) => {
+    if (event.persisted) window.location.reload();
+  });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   const today = new Date();
   const localDate = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
