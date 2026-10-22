@@ -72,7 +72,28 @@ public class ReservationService {
         Reservation reservation = reservations.findById(reservationId)
             .orElseThrow(() -> new IllegalArgumentException("Reservation not found."));
 
-        if ("APPROVED".equals(status)) {
+        String currentStatus = reservation.getStatus();
+        String nextStatus = status;
+
+        if ("CANCELLATION_REQUESTED".equals(currentStatus)) {
+            if ("CANCELLED".equals(status)) {
+                nextStatus = "CANCELLED";
+            } else if ("APPROVED".equals(status)) {
+                String previousStatus = reservation.getStatusBeforeCancellation();
+
+                // Older records have no saved prior status; preserve their
+                // previous behavior by treating them as approved bookings.
+                nextStatus = ("PENDING".equals(previousStatus) ||
+                              "APPROVED".equals(previousStatus))
+                        ? previousStatus : "APPROVED";
+            } else {
+                throw new IllegalArgumentException(
+                    "For a cancellation request, choose keep reservation or confirm cancellation."
+                );
+            }
+        }
+
+        if ("APPROVED".equals(nextStatus)) {
             Room room = reservation.getRoom();
             LocalDateTime requestedStart = start(reservation);
             LocalDateTime requestedEnd = end(reservation);
@@ -91,7 +112,10 @@ public class ReservationService {
             }
         }
 
-        reservation.setStatus(status);
+        reservation.setStatus(nextStatus);
+        if ("CANCELLATION_REQUESTED".equals(currentStatus)) {
+            reservation.setStatusBeforeCancellation(null);
+        }
         return reservations.save(reservation);
     }
 

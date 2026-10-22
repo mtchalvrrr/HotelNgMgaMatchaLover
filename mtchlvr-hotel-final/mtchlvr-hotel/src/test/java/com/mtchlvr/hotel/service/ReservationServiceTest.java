@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -57,10 +58,13 @@ class ReservationServiceTest {
             .thenAnswer(invocation -> invocation.getArgument(0));
 
         Reservation result = service.reserve(
-            "guest@example.com", 1L, today, today.plusDays(1));
+            "guest@example.com", 1L, today, LocalTime.of(10, 0),
+            today, LocalTime.of(18, 0));
 
         assertEquals(today, result.getCheckIn());
-        assertEquals(today.plusDays(1), result.getCheckOut());
+        assertEquals(today, result.getCheckOut());
+        assertEquals(LocalTime.of(10, 0), result.getCheckInTime());
+        assertEquals(LocalTime.of(18, 0), result.getCheckOutTime());
         assertEquals("PENDING", result.getStatus());
         verify(reservations).save(any(Reservation.class));
     }
@@ -96,6 +100,58 @@ class ReservationServiceTest {
         when(reservations.save(reservation)).thenReturn(reservation);
         assertSame(reservation, service.updateStatus(9L, "REJECTED"));
         verify(reservation).setStatus("REJECTED");
+        verify(reservations).save(reservation);
+    }
+
+
+    @Test
+    void keepingPendingCancellationRequestRestoresPendingStatus() {
+        Reservation reservation = mock(Reservation.class);
+        when(reservation.getStatus()).thenReturn("CANCELLATION_REQUESTED");
+        when(reservation.getStatusBeforeCancellation()).thenReturn("PENDING");
+        when(reservations.findById(11L)).thenReturn(Optional.of(reservation));
+        when(reservations.save(reservation)).thenReturn(reservation);
+
+        assertSame(reservation, service.updateStatus(11L, "APPROVED"));
+
+        verify(reservation).setStatus("PENDING");
+        verify(reservation).setStatusBeforeCancellation(null);
+        verify(reservations).save(reservation);
+    }
+
+    @Test
+    void keepingApprovedCancellationRequestRestoresApprovedStatus() {
+        Room room = mock(Room.class);
+        when(room.getId()).thenReturn(7L);
+        Reservation reservation = mock(Reservation.class);
+        when(reservation.getId()).thenReturn(12L);
+        when(reservation.getStatus()).thenReturn("CANCELLATION_REQUESTED");
+        when(reservation.getStatusBeforeCancellation()).thenReturn("APPROVED");
+        when(reservation.getRoom()).thenReturn(room);
+        when(reservation.getCheckIn()).thenReturn(LocalDate.now().plusDays(3));
+        when(reservation.getCheckOut()).thenReturn(LocalDate.now().plusDays(4));
+        when(reservations.findById(12L)).thenReturn(Optional.of(reservation));
+        when(reservations.findAll()).thenReturn(List.of(reservation));
+        when(reservations.save(reservation)).thenReturn(reservation);
+
+        assertSame(reservation, service.updateStatus(12L, "APPROVED"));
+
+        verify(reservation).setStatus("APPROVED");
+        verify(reservation).setStatusBeforeCancellation(null);
+        verify(reservations).save(reservation);
+    }
+
+    @Test
+    void confirmingCancellationMarksRequestCancelledAndClearsPriorStatus() {
+        Reservation reservation = mock(Reservation.class);
+        when(reservation.getStatus()).thenReturn("CANCELLATION_REQUESTED");
+        when(reservations.findById(13L)).thenReturn(Optional.of(reservation));
+        when(reservations.save(reservation)).thenReturn(reservation);
+
+        assertSame(reservation, service.updateStatus(13L, "CANCELLED"));
+
+        verify(reservation).setStatus("CANCELLED");
+        verify(reservation).setStatusBeforeCancellation(null);
         verify(reservations).save(reservation);
     }
 

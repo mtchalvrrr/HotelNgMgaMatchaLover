@@ -20,6 +20,8 @@ public class Reservation {
     @Column(name = "check_in_time") private LocalTime checkInTime;
     @Column(name = "check_out_time") private LocalTime checkOutTime;
     @Column(nullable = false) private String status = "PENDING";
+    @Column(name = "status_before_cancellation")
+    private String statusBeforeCancellation;
     @Column(nullable = false) private Instant createdAt = Instant.now();
     // Soft-hide a processed record from manager history without deleting the reservation itself.
     @Column private Boolean historyVisible = true;
@@ -44,14 +46,26 @@ public class Reservation {
     public void setCheckInTime(LocalTime value) { checkInTime = value; }
     public void setCheckOutTime(LocalTime value) { checkOutTime = value; }
     public long getNights() {
-        return java.time.temporal.ChronoUnit.DAYS.between(checkIn, checkOut);
+        long dateNights =
+                java.time.temporal.ChronoUnit.DAYS.between(checkIn, checkOut);
+
+        if (dateNights > 0) return dateNights;
+        if (dateNights < 0) return 0;
+
+        // Same-day stays are charged at least one standard nightly rate,
+        // but only when the checkout time is later than check-in.
+        LocalTime start = checkInTime == null ? LocalTime.of(14, 0) : checkInTime;
+        LocalTime end = checkOutTime == null ? LocalTime.NOON : checkOutTime;
+        return end.isAfter(start) ? 1 : 0;
     }
     public java.math.BigDecimal getTotalCost() {
         return room.getNightlyRate().multiply(java.math.BigDecimal.valueOf(getNights()));
     }
     public String getStatus() { return status; }
+    public String getStatusBeforeCancellation() { return statusBeforeCancellation; }
     public Instant getCreatedAt() { return createdAt; }
     public boolean isHistoryVisible() { return historyVisible == null || historyVisible; }
     public void setHistoryVisible(boolean visible) { historyVisible = visible; }
     public void setStatus(String v) { status = v; }
+    public void setStatusBeforeCancellation(String v) { statusBeforeCancellation = v; }
 }

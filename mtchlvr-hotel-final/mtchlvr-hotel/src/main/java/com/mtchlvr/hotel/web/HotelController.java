@@ -107,7 +107,9 @@ public class HotelController {
         if (!r.getStatus().equals("PENDING") && !r.getStatus().equals("APPROVED")) {
             flash.addFlashAttribute("error", "This reservation cannot be cancelled in its current status.");
         } else {
-            r.setStatus("CANCELLATION_REQUESTED"); reservations.save(r);
+            r.setStatusBeforeCancellation(r.getStatus());
+            r.setStatus("CANCELLATION_REQUESTED");
+            reservations.save(r);
             flash.addFlashAttribute("success", "Cancellation request sent to the manager.");
         }
         return "redirect:/customer/reservations";
