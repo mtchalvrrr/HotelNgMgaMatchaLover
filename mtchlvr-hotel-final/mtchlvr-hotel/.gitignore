@@ -15,3 +15,6 @@ data/*.db-wal
 # OS files
 .DS_Store
 Thumbs.db
+# Local database snapshots and source backups
+data/*.db.before-*
+*.bak*
