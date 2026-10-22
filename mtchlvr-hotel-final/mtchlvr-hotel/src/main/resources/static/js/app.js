@@ -21,20 +21,50 @@ document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll('input[name="checkOut"]').forEach((input) => input.min = localDate);
 
   const checkoutReminder = document.getElementById("checkout-day-reminder");
-  if (checkoutReminder) {
+  const checkoutModal = document.getElementById("checkout-reminder-modal");
+
+  if (checkoutReminder && checkoutModal) {
     const reminderText = checkoutReminder.textContent.replace(/\s+/g, " ").trim();
     const reminderKey = "mtchlvr-checkout-reminder:" + localDate + ":" + reminderText;
+    const message = checkoutModal.querySelector("[data-checkout-message]");
+    const dismissButtons = checkoutModal.querySelectorAll("[data-checkout-dismiss]");
     let alreadyShown = false;
 
     try {
       alreadyShown = sessionStorage.getItem(reminderKey) === "shown";
     } catch (_) {}
 
+    const closeCheckoutReminder = () => {
+      checkoutModal.hidden = true;
+    };
+
+    dismissButtons.forEach((button) => {
+      button.addEventListener("click", closeCheckoutReminder);
+    });
+
+    checkoutModal.addEventListener("click", (event) => {
+      if (event.target === checkoutModal) closeCheckoutReminder();
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && !checkoutModal.hidden) {
+        closeCheckoutReminder();
+      }
+    });
+
+    // Close the reminder before the shared logout-style confirmation opens.
+    document.querySelectorAll("form[data-checkout-early-form]").forEach((form) => {
+      form.addEventListener("submit", closeCheckoutReminder);
+    });
+
     if (!alreadyShown) {
       try {
         sessionStorage.setItem(reminderKey, "shown");
       } catch (_) {}
-      window.alert(reminderText);
+
+      if (message) message.textContent = reminderText;
+      checkoutModal.hidden = false;
+      dismissButtons[0]?.focus();
     }
   }
 

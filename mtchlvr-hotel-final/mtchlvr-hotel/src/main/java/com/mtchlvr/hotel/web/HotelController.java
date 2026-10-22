@@ -40,7 +40,11 @@ public class HotelController {
     }
     @GetMapping("/login") public String login(Model model) { return "login"; }
 
-    @GetMapping("/register") public String register(Model model, HttpSession session) {
+    @GetMapping("/register") public String register(Model model, HttpSession session,
+            jakarta.servlet.http.HttpServletResponse response) {
+        response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
+        response.setHeader("Pragma", "no-cache");
+        response.setDateHeader("Expires", 0);
         model.addAttribute("form", new RegisterForm()); return "register";
     }
     @PostMapping("/register") public String registerPost(@Valid @ModelAttribute("form") RegisterForm form,
@@ -61,6 +65,9 @@ public class HotelController {
         newCustomer.setCustomerCode(generateCustomerCode());
         users.save(newCustomer);
         flash.addFlashAttribute("success", "Account created successfully!");
+        request.setAttribute(
+                org.springframework.web.servlet.View.RESPONSE_STATUS_ATTRIBUTE,
+                org.springframework.http.HttpStatus.SEE_OTHER);
         return "redirect:/";
     }
     @GetMapping("/customer/reservations") public String myReservations(Authentication auth, Model model) {
@@ -76,9 +83,28 @@ public class HotelController {
                         .filter(r -> !"CANCELLED".equals(r.getStatus()))
                         .toList();
         model.addAttribute("reservations", customerReservations);
+        java.time.ZoneId hotelZone = java.time.ZoneId.of("Asia/Manila");
+        LocalDate today = LocalDate.now(hotelZone);
+        java.time.LocalDateTime now =
+                java.time.LocalDateTime.now(hotelZone).withNano(0);
+
         model.addAttribute("checkoutTodayReservations", customerReservations.stream()
                 .filter(r -> "APPROVED".equals(r.getStatus()))
-                .filter(r -> r.getCheckOut().equals(LocalDate.now()))
+                .filter(r -> r.getCheckOut().equals(today))
+                .toList());
+
+        model.addAttribute("earlyCheckoutReservationIds", customerReservations.stream()
+                .filter(r -> "APPROVED".equals(r.getStatus()))
+                .filter(r -> {
+                    java.time.LocalTime inTime = r.getCheckInTime() == null
+                            ? java.time.LocalTime.of(14, 0) : r.getCheckInTime();
+                    java.time.LocalTime outTime = r.getCheckOutTime() == null
+                            ? java.time.LocalTime.NOON : r.getCheckOutTime();
+                    java.time.LocalDateTime start = r.getCheckIn().atTime(inTime);
+                    java.time.LocalDateTime end = r.getCheckOut().atTime(outTime);
+                    return !now.isBefore(start) && now.isBefore(end);
+                })
+                .map(Reservation::getId)
                 .toList());
         return "my-reservations";
     }
@@ -112,6 +138,58 @@ public class HotelController {
             reservations.save(r);
             flash.addFlashAttribute("success", "Cancellation request sent to the manager.");
         }
+        return "redirect:/customer/reservations";
+    }
+
+    @PostMapping("/customer/reservations/{id}/early-checkout")
+    public String earlyCheckout(@PathVariable Long id, Authentication auth,
+                                RedirectAttributes flash) {
+        Reservation r = reservations.findById(id).orElse(null);
+
+        if (r == null || r.getCustomer() == null
+                || !r.getCustomer().getEmail().equalsIgnoreCase(auth.getName())) {
+            flash.addFlashAttribute("error", "Reservation not found.");
+            return "redirect:/customer/reservations";
+        }
+
+        if (!"APPROVED".equals(r.getStatus())) {
+            flash.addFlashAttribute("error",
+                    "Only approved reservations can check out early.");
+            return "redirect:/customer/reservations";
+        }
+
+        java.time.ZoneId hotelZone = java.time.ZoneId.of("Asia/Manila");
+        java.time.LocalDateTime now =
+                java.time.LocalDateTime.now(hotelZone).withNano(0);
+
+        java.time.LocalTime inTime = r.getCheckInTime() == null
+                ? java.time.LocalTime.of(14, 0) : r.getCheckInTime();
+        java.time.LocalTime outTime = r.getCheckOutTime() == null
+                ? java.time.LocalTime.NOON : r.getCheckOutTime();
+
+        java.time.LocalDateTime scheduledStart = r.getCheckIn().atTime(inTime);
+        java.time.LocalDateTime scheduledEnd = r.getCheckOut().atTime(outTime);
+
+        if (now.isBefore(scheduledStart)) {
+            flash.addFlashAttribute("error",
+                    "Early checkout is available only after your scheduled check-in.");
+            return "redirect:/customer/reservations";
+        }
+
+        if (!now.isBefore(scheduledEnd)) {
+            flash.addFlashAttribute("error",
+                    "Your scheduled checkout time has arrived. Please settle your bill at reception.");
+            return "redirect:/customer/reservations";
+        }
+
+        r.setCheckOut(now.toLocalDate());
+        r.setCheckOutTime(now.toLocalTime());
+        r.setStatus("COMPLETED");
+        reservations.save(r);
+
+        flash.addFlashAttribute("success",
+                "Early checkout recorded. Your estimated room charge has been updated. "
+                + "Please settle your final bill at reception.");
         return "redirect:/customer/reservations";
     }
 

@@ -41,6 +41,7 @@ public class Reservation {
     public Room getRoom() { return room; }
     public LocalDate getCheckIn() { return checkIn; }
     public LocalDate getCheckOut() { return checkOut; }
+    public void setCheckOut(LocalDate value) { checkOut = value; }
     public LocalTime getCheckInTime() { return checkInTime; }
     public LocalTime getCheckOutTime() { return checkOutTime; }
     public void setCheckInTime(LocalTime value) { checkInTime = value; }
