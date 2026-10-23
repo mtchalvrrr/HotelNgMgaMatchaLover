@@ -1,4 +1,4 @@
-<!doctype html><html lang="en" xmlns:th="http://www.thymeleaf.org"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sign in · mtchlvr hotel</title><link rel="stylesheet" href="/css/style.css"><meta name="_csrf" th:content="${_csrf.token}"><meta name="_csrf_header" th:content="${_csrf.headerName}"></head><body class="auth-body"><a class="brand auth-brand" href="/"><span class="brand-mark">m</span><span>mtchlvr <small>HOTEL</small></span></a><main class="auth-card"><span class="eyebrow">WELCOME BACK</span><h1>Good to see <em>you.</em></h1><div th:if="${param.error}" class="alert error">Sign-in failed. Check your credentials.</div><div th:if="${param.captchaError}" class="alert error">Google reCAPTCHA verification failed. Please try again.</div><div th:if="${success}" class="alert success" th:text="${success}"></div><form th:action="@{/login}" method="post" class="stack-form"><label>Email address<input type="email" name="username" autocomplete="email" required></label><label>Password</label>
+<!doctype html><html lang="en" xmlns:th="http://www.thymeleaf.org"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sign in · mtchlvr hotel</title><link rel="stylesheet" href="/css/style.css"><meta name="_csrf" th:content="${_csrf.token}"><meta name="_csrf_header" th:content="${_csrf.headerName}"></head><body class="auth-body"><a class="brand auth-brand" href="/"><span class="brand-mark">m</span><span>mtchlvr <small>HOTEL</small></span></a><main class="auth-card"><span class="eyebrow">WELCOME BACK</span><h1>Good to see <em>you.</em></h1><div th:if="${param.error}" class="alert error">Sign-in failed. Check your credentials.</div><div th:if="${param.captchaError}" class="alert error">Google reCAPTCHA verification failed. Please try again.</div><div th:if="${success}" class="alert success" th:text="${success}"></div><form th:action="@{/login}" method="post" class="stack-form" autocomplete="off"><label>Email address<input type="email" id="loginEmail" name="username" autocomplete="off" autocapitalize="none" spellcheck="false" required></label><label>Password</label>
 <div class="password-field">
     <input id="loginPassword" type="password" name="password"
            autocomplete="current-password" required>
@@ -6,7 +6,19 @@
             aria-controls="loginPassword" aria-pressed="false">Show</button>
 </div><div class="captcha-wrap"><div class="g-recaptcha" th:attr="data-sitekey=${@environment.getProperty('google.recaptcha.site-key', '')}" ></div><small class="muted">Complete Google reCAPTCHA to sign in.</small></div><button class="button wide" type="submit">Sign in ↗</button></form><p class="auth-switch">New to mtchlvr? <a href="/register">Create an account</a></p></main><script src="https://www.google.com/recaptcha/api.js" async defer></script><script src="/js/app.js"></script>
 <script>
+// Clear the email whenever the login page is shown, including Chrome's
+// back/forward cache restore after logout. This prevents the previous account
+// from remaining visible on a shared computer.
+function clearLoginEmail() {
+    const emailInput = document.getElementById('loginEmail');
+    if (emailInput) emailInput.value = '';
+}
+
+window.addEventListener('pageshow', clearLoginEmail);
+window.addEventListener('pagehide', clearLoginEmail);
+
 document.addEventListener('DOMContentLoaded', function () {
+    clearLoginEmail();
     const passwordInput = document.getElementById('loginPassword');
     const togglePassword = document.getElementById('togglePassword');
 
