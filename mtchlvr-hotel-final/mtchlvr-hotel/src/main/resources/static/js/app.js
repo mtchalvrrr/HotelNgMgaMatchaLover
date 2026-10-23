@@ -11,6 +11,37 @@ if (sensitiveHistoryPath) {
 document.addEventListener("DOMContentLoaded", () => {
   const today = new Date();
   const localDate = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  // Quick-fill a same-day booking without submitting it automatically.
+  document.querySelectorAll("[data-same-day-booking]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const form = button.closest(".room-card")?.querySelector("form.booking-form");
+      if (!form) return;
+
+      const checkIn = form.querySelector('input[name="checkIn"]');
+      const checkInTime = form.querySelector('input[name="checkInTime"]');
+      const checkOut = form.querySelector('input[name="checkOut"]');
+      const checkOutTime = form.querySelector('input[name="checkOutTime"]');
+      if (!checkIn || !checkInTime || !checkOut || !checkOutTime) return;
+
+      const now = new Date();
+      const today = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const formatDate = (date) => date.toISOString().slice(0, 10);
+      checkIn.value = formatDate(today);
+      checkInTime.value = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+      checkOut.value = formatDate(tomorrow);
+      checkOutTime.value = "12:00";
+
+      [checkIn, checkInTime, checkOut, checkOutTime].forEach((input) => {
+        input.dispatchEvent(new Event("change", { bubbles: true }));
+      });
+      form.scrollIntoView({ behavior: "smooth", block: "center" });
+      checkIn.focus({ preventScroll: true });
+      button.textContent = "Today selected · Review booking";
+    });
+  });
+
   document.querySelectorAll('input[name="checkIn"]').forEach((input) => {
     input.min = localDate;
     input.addEventListener("change", () => {
