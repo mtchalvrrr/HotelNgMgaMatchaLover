@@ -11,35 +11,80 @@ if (sensitiveHistoryPath) {
 document.addEventListener("DOMContentLoaded", () => {
   const today = new Date();
   const localDate = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
-  // Quick-fill a same-day booking without submitting it automatically.
+  // Confirm the same-day shortcut using the same styled dialog as checkout reminders.
+  const sameDayModal = document.getElementById("same-day-booking-modal");
+  const sameDayMessage = sameDayModal?.querySelector("[data-same-day-message]");
+  const sameDayCancel = sameDayModal?.querySelector("[data-same-day-cancel]");
+  const sameDayConfirm = sameDayModal?.querySelector("[data-same-day-confirm]");
+  let pendingSameDayButton = null;
+
+  const closeSameDayModal = (restoreFocus = false) => {
+    if (!sameDayModal) return;
+    sameDayModal.hidden = true;
+    if (restoreFocus) pendingSameDayButton?.focus();
+    pendingSameDayButton = null;
+  };
+
   document.querySelectorAll("[data-same-day-booking]").forEach((button) => {
     button.addEventListener("click", () => {
       const form = button.closest(".room-card")?.querySelector("form.booking-form");
-      if (!form) return;
+      if (!form || !sameDayModal) return;
 
-      const checkIn = form.querySelector('input[name="checkIn"]');
-      const checkInTime = form.querySelector('input[name="checkInTime"]');
-      const checkOut = form.querySelector('input[name="checkOut"]');
-      const checkOutTime = form.querySelector('input[name="checkOutTime"]');
-      if (!checkIn || !checkInTime || !checkOut || !checkOutTime) return;
-
-      const now = new Date();
-      const today = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
-      const tomorrow = new Date(today);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      const formatDate = (date) => date.toISOString().slice(0, 10);
-      checkIn.value = formatDate(today);
-      checkInTime.value = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
-      checkOut.value = formatDate(tomorrow);
-      checkOutTime.value = "12:00";
-
-      [checkIn, checkInTime, checkOut, checkOutTime].forEach((input) => {
-        input.dispatchEvent(new Event("change", { bubbles: true }));
-      });
-      form.scrollIntoView({ behavior: "smooth", block: "center" });
-      checkIn.focus({ preventScroll: true });
-      button.textContent = "Today selected · Review booking";
+      pendingSameDayButton = button;
+      const roomName = button.closest(".room-card")?.querySelector(".room-info h3")?.textContent.trim();
+      const roomNumber = button.closest(".room-card")?.querySelector(".room-number")?.textContent.trim();
+      if (sameDayMessage) {
+        sameDayMessage.textContent = `Set ${roomName || "this room"} ${roomNumber ? "(" + roomNumber + ")" : ""} for check-in today and check-out tomorrow at 12:00 PM. You can review the details before submitting your reservation request.`;
+      }
+      sameDayModal.hidden = false;
+      sameDayCancel?.focus();
     });
+  });
+
+  sameDayCancel?.addEventListener("click", () => closeSameDayModal(true));
+  sameDayModal?.addEventListener("click", (event) => {
+    if (event.target === sameDayModal) closeSameDayModal(true);
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && sameDayModal && !sameDayModal.hidden) {
+      closeSameDayModal(true);
+    }
+  });
+
+  sameDayConfirm?.addEventListener("click", () => {
+    const button = pendingSameDayButton;
+    const form = button?.closest(".room-card")?.querySelector("form.booking-form");
+    if (!form) {
+      closeSameDayModal();
+      return;
+    }
+
+    const checkIn = form.querySelector('input[name="checkIn"]');
+    const checkInTime = form.querySelector('input[name="checkInTime"]');
+    const checkOut = form.querySelector('input[name="checkOut"]');
+    const checkOutTime = form.querySelector('input[name="checkOutTime"]');
+    if (!checkIn || !checkInTime || !checkOut || !checkOutTime) {
+      closeSameDayModal();
+      return;
+    }
+
+    const now = new Date();
+    const today = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const formatDate = (date) => date.toISOString().slice(0, 10);
+    checkIn.value = formatDate(today);
+    checkInTime.value = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+    checkOut.value = formatDate(tomorrow);
+    checkOutTime.value = "12:00";
+
+    [checkIn, checkInTime, checkOut, checkOutTime].forEach((input) => {
+      input.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+    closeSameDayModal();
+    form.scrollIntoView({ behavior: "smooth", block: "center" });
+    checkIn.focus({ preventScroll: true });
+    button.textContent = "Today selected · Review booking";
   });
 
   document.querySelectorAll('input[name="checkIn"]').forEach((input) => {
