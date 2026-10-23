@@ -140,7 +140,6 @@ public class HotelController {
         }
         return "redirect:/customer/reservations";
     }
-
     @PostMapping("/customer/reservations/{id}/early-checkout")
     public String earlyCheckout(@PathVariable Long id, Authentication auth,
                                 RedirectAttributes flash) {
@@ -281,6 +280,12 @@ public class HotelController {
             flash.addFlashAttribute("error", "Room not found.");
         } else if (!room.isActive()) {
             flash.addFlashAttribute("error", "This room is already inactive.");
+        } else if (reservations.existsByRoom_IdAndStatusIn(
+                id, java.util.List.of("PENDING", "APPROVED", "CANCELLATION_REQUESTED"))) {
+            flash.addFlashAttribute("error",
+                    "Cannot deactivate room " + room.getRoomNumber()
+                    + " because it has a pending, approved, or cancellation-requested reservation. "
+                    + "Resolve the reservation first.");
         } else {
             room.setActive(false);
             rooms.save(room);
