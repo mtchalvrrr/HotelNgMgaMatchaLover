@@ -15,4 +15,14 @@
   <p class="muted">Please sign in with a customer account to reserve this room.</p>
   <a class="button" href="/login">Sign in to reserve</a>
   <a class="text-button" href="/register">Create an account</a>
-</div></article></div></main><footer><a class="brand" href="/"><span class="brand-mark">m</span><span>mtchlvr <small>HOTEL</small></span></a><span>© 2026 mtchlvr hotel</span></footer><script src="/js/app.js"></script><div th:replace="~{fragments :: chatbot}"></div></body></html>
+</div></article></div></main><div id="same-day-booking-modal" class="confirm-backdrop" hidden role="dialog" aria-modal="true" aria-labelledby="same-day-booking-title">
+  <section class="confirm-card">
+    <span class="eyebrow">SAME-DAY RESERVATION</span>
+    <h2 id="same-day-booking-title">Ready for today?</h2>
+    <p data-same-day-message>We’ll set your check-in for today and check-out for tomorrow. Please review the details before sending your reservation request.</p>
+    <div class="confirm-actions">
+      <button type="button" class="button secondary" data-same-day-cancel>Not now</button>
+      <button type="button" class="button" data-same-day-confirm>Yes, book today</button>
+    </div>
+  </section>
+</div><footer><a class="brand" href="/"><span class="brand-mark">m</span><span>mtchlvr <small>HOTEL</small></span></a><span>© 2026 mtchlvr hotel</span></footer><script src="/js/app.js"></script><div th:replace="~{fragments :: chatbot}"></div></body></html>
