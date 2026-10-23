@@ -5,4 +5,6 @@ import java.util.List;
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
     List<Reservation> findByCustomerEmailIgnoreCaseOrderByCreatedAtDesc(String email);
     List<Reservation> findAllByOrderByCreatedAtDesc();
+
+    boolean existsByRoom_IdAndStatusIn(Long roomId, List<String> statuses);
 }
