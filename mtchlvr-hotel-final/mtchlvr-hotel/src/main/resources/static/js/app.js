@@ -11,11 +11,86 @@ if (sensitiveHistoryPath) {
 document.addEventListener("DOMContentLoaded", () => {
   const today = new Date();
   const localDate = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  // Same-day reservations use the hotel's standard 2:00 PM check-in and 8:00 PM checkout.
+  const sameDayModal = document.getElementById("same-day-booking-modal");
+  const sameDayMessage = sameDayModal?.querySelector("[data-same-day-message]");
+  const sameDayCancel = sameDayModal?.querySelector("[data-same-day-cancel]");
+  const sameDayConfirm = sameDayModal?.querySelector("[data-same-day-confirm]");
+  let pendingSameDayButton = null;
+
+  const closeSameDayModal = (restoreFocus = false) => {
+    if (!sameDayModal) return;
+    sameDayModal.hidden = true;
+    if (restoreFocus) pendingSameDayButton?.focus();
+    pendingSameDayButton = null;
+  };
+
+  document.querySelectorAll("[data-same-day-booking]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const card = button.closest(".room-card");
+      const form = card?.querySelector("form.booking-form");
+      if (!form || !sameDayModal) return;
+
+      pendingSameDayButton = button;
+      const roomName = card.querySelector(".room-info h3")?.textContent.trim();
+      const roomNumber = card.querySelector(".room-number")?.textContent.trim();
+      if (sameDayMessage) {
+        sameDayMessage.textContent = `Set ${roomName || "this room"} ${roomNumber ? "(" + roomNumber + ")" : ""} for check-in today at 2:00 PM and check-out today at 8:00 PM. Review the details before submitting your reservation request.`;
+      }
+      sameDayModal.hidden = false;
+      sameDayCancel?.focus();
+    });
+  });
+
+  sameDayCancel?.addEventListener("click", () => closeSameDayModal(true));
+  sameDayModal?.addEventListener("click", (event) => {
+    if (event.target === sameDayModal) closeSameDayModal(true);
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && sameDayModal && !sameDayModal.hidden) {
+      closeSameDayModal(true);
+    }
+  });
+
+  sameDayConfirm?.addEventListener("click", () => {
+    const button = pendingSameDayButton;
+    const form = button?.closest(".room-card")?.querySelector("form.booking-form");
+    if (!form) {
+      closeSameDayModal();
+      return;
+    }
+
+    const checkIn = form.querySelector('input[name="checkIn"]');
+    const checkInTime = form.querySelector('input[name="checkInTime"]');
+    const checkOut = form.querySelector('input[name="checkOut"]');
+    const checkOutTime = form.querySelector('input[name="checkOutTime"]');
+    if (!checkIn || !checkInTime || !checkOut || !checkOutTime) {
+      closeSameDayModal();
+      return;
+    }
+
+    const now = new Date();
+    const todayLocal = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
+    const todayDate = todayLocal.toISOString().slice(0, 10);
+    checkIn.value = todayDate;
+    checkInTime.value = "14:00";
+    checkOut.value = todayDate;
+    checkOutTime.value = "20:00";
+
+    [checkIn, checkInTime, checkOut, checkOutTime].forEach((input) => {
+      input.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+    closeSameDayModal();
+    form.scrollIntoView({ behavior: "smooth", block: "center" });
+    checkIn.focus({ preventScroll: true });
+    button.textContent = "Today · 2 PM–8 PM selected";
+  });
+
   document.querySelectorAll('input[name="checkIn"]').forEach((input) => {
     input.min = localDate;
     input.addEventListener("change", () => {
       const out = input.closest("form")?.querySelector('input[name="checkOut"]');
-      if (out) { out.min = input.value || localDate; if (out.value && out.value <= input.value) out.value = ""; }
+      if (out) { out.min = input.value || localDate; if (out.value && out.value < input.value) out.value = ""; }
     });
   });
   document.querySelectorAll('input[name="checkOut"]').forEach((input) => input.min = localDate);
