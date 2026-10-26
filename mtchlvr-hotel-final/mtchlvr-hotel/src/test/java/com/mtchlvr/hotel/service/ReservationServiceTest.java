@@ -70,6 +70,29 @@ class ReservationServiceTest {
     }
 
     @Test
+    void enforcesThirtyMinuteCleaningBufferBetweenReservations() {
+        LocalDate checkIn = LocalDate.now().plusDays(3);
+        Room room = mock(Room.class);
+        when(room.getId()).thenReturn(7L);
+        when(room.isAvailable()).thenReturn(true);
+        when(room.isActive()).thenReturn(true);
+
+        Reservation existing = mock(Reservation.class);
+        when(existing.getRoom()).thenReturn(room);
+        when(existing.getStatus()).thenReturn("APPROVED");
+        when(existing.getCheckIn()).thenReturn(checkIn.minusDays(1));
+        when(existing.getCheckOut()).thenReturn(checkIn);
+        when(existing.getCheckInTime()).thenReturn(LocalTime.of(14, 0));
+        when(existing.getCheckOutTime()).thenReturn(LocalTime.NOON);
+        when(reservations.findAll()).thenReturn(List.of(existing));
+
+        assertFalse(service.isAvailable(room, checkIn, LocalTime.of(12, 15),
+                checkIn.plusDays(1), LocalTime.NOON));
+        assertTrue(service.isAvailable(room, checkIn, LocalTime.of(12, 30),
+                checkIn.plusDays(1), LocalTime.NOON));
+    }
+
+    @Test
     void rejectsApprovalWhenAnotherActiveReservationOverlaps() {
         Room room = mock(Room.class);
         when(room.getId()).thenReturn(7L);
