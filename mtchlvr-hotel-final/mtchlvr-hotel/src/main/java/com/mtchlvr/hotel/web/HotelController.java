@@ -98,12 +98,12 @@ public class HotelController {
                 java.time.LocalDateTime.now(hotelZone).withNano(0);
 
         model.addAttribute("checkoutTodayReservations", customerReservations.stream()
-                .filter(r -> "APPROVED".equals(r.getStatus()))
+                .filter(r -> "APPROVED".equals(r.getStatus()) || "CHECKED_IN".equals(r.getStatus()))
                 .filter(r -> r.getCheckOut().equals(today))
                 .toList());
 
         model.addAttribute("earlyCheckoutReservationIds", customerReservations.stream()
-                .filter(r -> "APPROVED".equals(r.getStatus()))
+                .filter(r -> "CHECKED_IN".equals(r.getStatus()))
                 .filter(r -> {
                     java.time.LocalTime inTime = r.getCheckInTime() == null
                             ? java.time.LocalTime.of(14, 0) : r.getCheckInTime();
