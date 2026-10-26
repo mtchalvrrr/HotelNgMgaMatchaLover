@@ -240,3 +240,16 @@ body.availability-popup-open {
     animation: none;
   }
 }
+
+
+/* Guest lifecycle, rating and searchable reservation history */
+.status.checked_in{background:#e0f0f5;color:#245e70}
+.status.completed{background:#e8f5e0;color:#2a7c13}
+.rating-stars{display:inline-block;color:#587b32;font-weight:850;white-space:nowrap}
+.history-filters{display:grid;grid-template-columns:minmax(220px,2fr) repeat(3,minmax(145px,1fr));gap:14px;align-items:end;margin:26px 0 20px;padding:20px;border:1px solid var(--line);border-radius:15px;background:var(--white)}
+.history-filters label{display:grid;gap:7px;color:var(--forest);font-size:12px;font-weight:800}
+.history-filters input,.history-filters select{width:100%;min-width:0}
+.history-filter-actions{display:flex;gap:9px;align-items:center;grid-column:1/-1;flex-wrap:wrap}
+.history-filter-actions .button{display:inline-flex;align-items:center;justify-content:center}
+@media(max-width:850px){.history-filters{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:580px){.history-filters{grid-template-columns:1fr;padding:15px}.history-filter-actions{grid-column:auto}.history-filter-actions .button{flex:1}}
