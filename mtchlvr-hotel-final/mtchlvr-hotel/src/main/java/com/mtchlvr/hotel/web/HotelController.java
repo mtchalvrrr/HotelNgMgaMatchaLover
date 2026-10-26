@@ -81,10 +81,7 @@ public class HotelController {
         }
         model.addAttribute("customer", customer);
         java.util.List<Reservation> customerReservations =
-                reservations.findByCustomerEmailIgnoreCaseOrderByCreatedAtDesc(auth.getName())
-                        .stream()
-                        .filter(r -> !"CANCELLED".equals(r.getStatus()))
-                        .toList();
+                reservations.findByCustomerEmailIgnoreCaseOrderByCreatedAtDesc(auth.getName());
         model.addAttribute("reservations", customerReservations);
         java.util.Map<Long, StayRating> ratingsByReservationId = new java.util.HashMap<>();
         for (Reservation reservation : customerReservations) {
