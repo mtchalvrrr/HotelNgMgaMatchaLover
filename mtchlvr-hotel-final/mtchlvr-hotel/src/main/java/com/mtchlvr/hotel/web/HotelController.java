@@ -24,11 +24,14 @@ public class HotelController {
     private final CaptchaService captcha;
     private final PasswordEncoder encoder;
     private final ReportRepository reports;
+    private final StayRatingRepository stayRatings;
 
     public HotelController(RoomRepository rooms, UserRepository users, ReservationRepository reservations,
-                           ReservationService reservationService, CaptchaService captcha, PasswordEncoder encoder, ReportRepository reports) {
+                           ReservationService reservationService, CaptchaService captcha, PasswordEncoder encoder, ReportRepository reports,
+                           StayRatingRepository stayRatings) {
         this.rooms = rooms; this.users = users; this.reservations = reservations;
         this.reservationService = reservationService; this.captcha = captcha; this.encoder = encoder; this.reports = reports;
+        this.stayRatings = stayRatings;
     }
 
     @GetMapping("/") public String home(Model model) {
@@ -83,6 +86,12 @@ public class HotelController {
                         .filter(r -> !"CANCELLED".equals(r.getStatus()))
                         .toList();
         model.addAttribute("reservations", customerReservations);
+        java.util.Map<Long, StayRating> ratingsByReservationId = new java.util.HashMap<>();
+        for (Reservation reservation : customerReservations) {
+            stayRatings.findByReservation_Id(reservation.getId())
+                    .ifPresent(rating -> ratingsByReservationId.put(reservation.getId(), rating));
+        }
+        model.addAttribute("ratingsByReservationId", ratingsByReservationId);
         java.time.ZoneId hotelZone = java.time.ZoneId.of("Asia/Manila");
         LocalDate today = LocalDate.now(hotelZone);
         java.time.LocalDateTime now =
@@ -152,9 +161,9 @@ public class HotelController {
             return "redirect:/customer/reservations";
         }
 
-        if (!"APPROVED".equals(r.getStatus())) {
+        if (!"CHECKED_IN".equals(r.getStatus())) {
             flash.addFlashAttribute("error",
-                    "Only approved reservations can check out early.");
+                    "You must be checked in before you can check out early.");
             return "redirect:/customer/reservations";
         }
 
@@ -191,6 +200,93 @@ public class HotelController {
                 "Early checkout recorded. Your estimated room charge has been updated. "
                 + "Please settle your final bill at reception.");
         return "redirect:/customer/reservations";
+    }
+
+    @PostMapping("/customer/reservations/{id}/rating")
+    public String submitStayRating(@PathVariable Long id, Authentication auth,
+            @RequestParam int rating, @RequestParam(defaultValue = "") String review,
+            RedirectAttributes flash) {
+        Reservation reservation = reservations.findById(id).orElse(null);
+        if (reservation == null || reservation.getCustomer() == null
+                || !reservation.getCustomer().getEmail().equalsIgnoreCase(auth.getName())) {
+            flash.addFlashAttribute("error", "Reservation not found.");
+            return "redirect:/customer/reservations";
+        }
+        if (!"COMPLETED".equals(reservation.getStatus())) {
+            flash.addFlashAttribute("error", "You can rate your stay after checkout is completed.");
+            return "redirect:/customer/reservations";
+        }
+        if (rating < 1 || rating > 5) {
+            flash.addFlashAttribute("error", "Choose a rating from 1 to 5 stars.");
+            return "redirect:/customer/reservations";
+        }
+        String cleanReview = review == null ? "" : review.trim();
+        if (cleanReview.length() > 1000) {
+            flash.addFlashAttribute("error", "Your review must be 1,000 characters or fewer.");
+            return "redirect:/customer/reservations";
+        }
+        if (stayRatings.findByReservation_Id(id).isPresent()) {
+            flash.addFlashAttribute("error", "This stay has already been rated.");
+            return "redirect:/customer/reservations";
+        }
+        stayRatings.save(new StayRating(reservation, rating, cleanReview.isBlank() ? null : cleanReview));
+        flash.addFlashAttribute("success", "Thank you for rating your stay!");
+        return "redirect:/customer/reservations";
+    }
+
+    @PostMapping("/manager/reservations/{id}/check-in")
+    public String checkInGuest(@PathVariable Long id, RedirectAttributes flash) {
+        Reservation r = reservations.findById(id).orElse(null);
+        if (r == null) {
+            flash.addFlashAttribute("error", "Reservation not found.");
+            return "redirect:/manager";
+        }
+        if (!"APPROVED".equals(r.getStatus())) {
+            flash.addFlashAttribute("error", "Only approved reservations can be checked in.");
+            return "redirect:/manager";
+        }
+        java.time.ZoneId zone = java.time.ZoneId.of("Asia/Manila");
+        java.time.LocalDateTime now = java.time.LocalDateTime.now(zone).withNano(0);
+        java.time.LocalTime checkInTime = r.getCheckInTime() == null
+                ? java.time.LocalTime.of(14, 0) : r.getCheckInTime();
+        java.time.LocalTime checkOutTime = r.getCheckOutTime() == null
+                ? java.time.LocalTime.NOON : r.getCheckOutTime();
+        java.time.LocalDateTime scheduledStart = r.getCheckIn().atTime(checkInTime);
+        java.time.LocalDateTime scheduledEnd = r.getCheckOut().atTime(checkOutTime);
+        if (now.isBefore(scheduledStart) || !now.isBefore(scheduledEnd)) {
+            flash.addFlashAttribute("error", "Check-in is only available from the scheduled check-in time until before checkout.");
+            return "redirect:/manager";
+        }
+        r.setStatus("CHECKED_IN");
+        reservations.save(r);
+        flash.addFlashAttribute("success", "Guest checked in. The reservation is now marked as CHECKED_IN.");
+        return "redirect:/manager";
+    }
+
+    @PostMapping("/manager/reservations/{id}/check-out")
+    public String checkOutGuest(@PathVariable Long id, RedirectAttributes flash) {
+        Reservation r = reservations.findById(id).orElse(null);
+        if (r == null) {
+            flash.addFlashAttribute("error", "Reservation not found.");
+            return "redirect:/manager";
+        }
+        if (!"CHECKED_IN".equals(r.getStatus())) {
+            flash.addFlashAttribute("error", "Only checked-in guests can be checked out.");
+            return "redirect:/manager";
+        }
+        java.time.LocalDateTime now = java.time.LocalDateTime.now(java.time.ZoneId.of("Asia/Manila")).withNano(0);
+        java.time.LocalDateTime scheduledStart = r.getCheckIn().atTime(
+                r.getCheckInTime() == null ? java.time.LocalTime.of(14, 0) : r.getCheckInTime());
+        if (now.isBefore(scheduledStart)) {
+            flash.addFlashAttribute("error", "The guest's scheduled check-in time has not arrived.");
+            return "redirect:/manager";
+        }
+        r.setCheckOut(now.toLocalDate());
+        r.setCheckOutTime(now.toLocalTime());
+        r.setStatus("COMPLETED");
+        reservations.save(r);
+        flash.addFlashAttribute("success", "Guest checked out. The completed stay is now available for a customer rating.");
+        return "redirect:/manager";
     }
 
     @GetMapping("/api/rooms/{roomId}/availability")
@@ -238,9 +334,54 @@ public class HotelController {
         return "reservation-requests";
     }
 
-    @GetMapping("/manager/history") public String managerHistory(Model model) {
-        model.addAttribute("reservations", reservations.findAllByOrderByCreatedAtDesc().stream().filter(Reservation::isHistoryVisible).toList());
+    @GetMapping("/manager/history")
+    public String managerHistory(@RequestParam(defaultValue = "") String q,
+            @RequestParam(defaultValue = "") String year,
+            @RequestParam(defaultValue = "ALL") String status,
+            @RequestParam(defaultValue = "newest") String sort, Model model) {
+        String query = q == null ? "" : q.trim().toLowerCase(java.util.Locale.ROOT);
+        Integer selectedYear = null;
+        if (year != null && !year.isBlank()) {
+            try { selectedYear = Integer.valueOf(year); }
+            catch (NumberFormatException ignored) { selectedYear = null; }
+        }
+        final Integer filterYear = selectedYear;
+        final String filterStatus = java.util.List.of("ALL", "PENDING", "APPROVED", "CHECKED_IN",
+                "COMPLETED", "REJECTED", "CANCELLED", "CANCELLATION_REQUESTED").contains(status)
+                ? status : "ALL";
+        java.util.List<Reservation> history = reservations.findAllByOrderByCreatedAtDesc().stream()
+                .filter(Reservation::isHistoryVisible)
+                .filter(r -> filterStatus.equals("ALL") || filterStatus.equals(r.getStatus()))
+                .filter(r -> filterYear == null || r.getCheckIn().getYear() == filterYear)
+                .filter(r -> query.isBlank() ||
+                        String.valueOf(r.getId()).contains(query) ||
+                        containsIgnoreCase(r.getCustomer().getFullName(), query) ||
+                        containsIgnoreCase(r.getCustomer().getEmail(), query) ||
+                        containsIgnoreCase(r.getCustomer().getCustomerCode(), query) ||
+                        containsIgnoreCase(r.getRoom().getRoomNumber(), query) ||
+                        containsIgnoreCase(r.getRoom().getType(), query))
+                .sorted("oldest".equalsIgnoreCase(sort)
+                        ? java.util.Comparator.comparing(Reservation::getCheckIn).thenComparing(Reservation::getId)
+                        : java.util.Comparator.comparing(Reservation::getCheckIn).thenComparing(Reservation::getId).reversed())
+                .toList();
+        java.util.Map<Long, StayRating> ratingsByReservationId = new java.util.HashMap<>();
+        for (Reservation reservation : history) {
+            stayRatings.findByReservation_Id(reservation.getId())
+                    .ifPresent(rating -> ratingsByReservationId.put(reservation.getId(), rating));
+        }
+        model.addAttribute("reservations", history);
+        model.addAttribute("ratingsByReservationId", ratingsByReservationId);
+        model.addAttribute("q", q == null ? "" : q);
+        model.addAttribute("year", year == null ? "" : year);
+        model.addAttribute("statusFilter", filterStatus);
+        model.addAttribute("sort", "oldest".equalsIgnoreCase(sort) ? "oldest" : "newest");
+        model.addAttribute("historyYears", reservations.findAllByOrderByCreatedAtDesc().stream()
+                .map(r -> r.getCheckIn().getYear()).distinct().sorted(java.util.Comparator.reverseOrder()).toList());
         return "reservation-history";
+    }
+
+    private boolean containsIgnoreCase(String value, String query) {
+        return value != null && value.toLowerCase(java.util.Locale.ROOT).contains(query);
     }
 
     @GetMapping("/manager/room-management") public String roomManagement(Model model) {
