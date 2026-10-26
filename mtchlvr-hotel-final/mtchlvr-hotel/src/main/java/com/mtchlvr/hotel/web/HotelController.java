@@ -98,7 +98,7 @@ public class HotelController {
                 java.time.LocalDateTime.now(hotelZone).withNano(0);
 
         model.addAttribute("checkoutTodayReservations", customerReservations.stream()
-                .filter(r -> "APPROVED".equals(r.getStatus()) || "CHECKED_IN".equals(r.getStatus()))
+                .filter(r -> "CHECKED_IN".equals(r.getStatus()))
                 .filter(r -> r.getCheckOut().equals(today))
                 .toList());
 
@@ -315,7 +315,8 @@ public class HotelController {
         model.addAttribute("rooms", rooms.findAll());
         model.addAttribute("reservations", reservations.findAllByOrderByCreatedAtDesc());
         java.util.List<Reservation> occupancyReservations = reservations.findAllByOrderByCreatedAtDesc().stream()
-                .filter(r -> !java.util.List.of("REJECTED", "CANCELLED").contains(r.getStatus()))
+                .filter(r -> java.util.List.of("PENDING", "APPROVED", "CHECKED_IN", "CANCELLATION_REQUESTED")
+                        .contains(r.getStatus()))
                 .toList();
         for (Reservation reservation : occupancyReservations) {
             AppUser customer = reservation.getCustomer();
