@@ -68,7 +68,7 @@
                 <td th:text="'₱' + ${#numbers.formatDecimal(r.totalCost,1,'COMMA',2,'POINT')}">₱3,600.00</td>
                 <td><span class="status" th:text="${r.status}" th:classappend="${r.status.toLowerCase()}">COMPLETED</span></td>
                 <td>
-                    <span th:if="${stayRating != null}" class="rating-stars" th:text="${'★'.repeat(stayRating.rating)} + ' (' + ${stayRating.rating} + '/5)'">★★★★★ (5/5)</span>
+                    <span th:if="${stayRating != null}" class="rating-stars" th:text="${stayRating.rating} + ' / 5 stars'">★★★★★ (5/5)</span>
                     <span th:if="${stayRating != null and stayRating.review != null}" class="cell-sub" th:text="${stayRating.review}">Guest review</span>
                     <span th:if="${stayRating == null and r.status == 'COMPLETED'}" class="muted">Not rated</span>
                     <span th:if="${r.status != 'COMPLETED'}" class="muted">—</span>
