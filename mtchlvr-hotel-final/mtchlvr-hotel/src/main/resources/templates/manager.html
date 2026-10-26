@@ -37,14 +37,18 @@
             </div>
             <p class="muted">Pending and approved reservations block these dates. Rejected and cancelled reservations are excluded.</p>
             <div class="table-wrap"><table>
-                <thead><tr><th>Room details</th><th>Occupant customer ID</th><th>Check-in</th><th>Check-out</th><th>Nights</th><th>Room charge</th><th>Status</th><th>Front desk</th></tr></thead>
+                <thead><tr><th>Room details</th><th>Guest / customer ID</th><th>Check-in</th><th>Check-out</th><th>Nights</th><th>Room charge</th><th>Status</th><th>Front desk</th></tr></thead>
                 <tbody>
                     <tr th:each="r : ${occupancyReservations}">
                         <td><strong th:text="|${r.room.type} · ${r.room.roomNumber}|">Deluxe · 201</strong>
                             <span class="cell-sub" th:text="|₱${#numbers.formatDecimal(r.room.nightlyRate,1,'COMMA',2,'POINT')} per night|">₱1,800.00 per night</span></td>
-                        <td th:text="${r.customer.customerCode}">mtchlvr-0000-5201314</td>
-                        <td th:text="${r.checkIn}">2026-10-14</td>
-                        <td th:text="${r.checkOut}">2026-10-16</td>
+                        <td><strong th:text="${r.customer.fullName}">Guest Name</strong>
+                            <span class="cell-sub" th:text="${r.customer.email}">guest@example.com</span>
+                            <span class="cell-sub" th:text="${r.customer.customerCode}">mtchlvr-0000-5201314</span></td>
+                        <td><span th:text="${r.checkIn}">2026-10-14</span>
+                            <span class="cell-sub" th:text="${r.checkInTime != null ? r.checkInTime : '14:00'}">14:00</span></td>
+                        <td><span th:text="${r.checkOut}">2026-10-16</span>
+                            <span class="cell-sub" th:text="${r.checkOutTime != null ? r.checkOutTime : '12:00'}">12:00</span></td>
                         <td th:text="${r.nights}">2</td>
                         <td th:text="|₱${#numbers.formatDecimal(r.totalCost,1,'COMMA',2,'POINT')}|">₱3,600.00</td>
                         <td><span class="status" th:text="${r.status}" th:classappend="${r.status.toLowerCase()}">PENDING</span></td>
