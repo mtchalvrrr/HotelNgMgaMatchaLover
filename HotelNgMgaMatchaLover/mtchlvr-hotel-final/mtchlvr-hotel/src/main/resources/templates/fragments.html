@@ -1,0 +1,99 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+<div th:fragment="nav"><header class="nav">
+  <a class="brand" href="/"><span class="brand-mark">m</span><span>mtchlvr <small>HOTEL</small></span></a>
+  <nav><a sec:authorize="hasRole('CUSTOMER')" href="/customer/reservations">My reservations</a><a sec:authorize="hasRole('MANAGER')" href="/manager">Manager dashboard</a></nav>
+  <div class="nav-actions"><a class="text-button" href="/login" sec:authorize="isAnonymous()">Sign in</a><form th:action="@{/logout}" method="post" sec:authorize="isAuthenticated()" data-confirm="Are you sure you want to log out?"><button class="text-button" type="submit">Log out ↗</button></form></div>
+</header><div th:replace="~{fragments :: managerConfirm}"></div></div>
+<div th:fragment="alerts" class="alerts">
+  <p class="alert success" th:if="${success}" th:text="${success}"></p>
+  <p class="alert error" th:if="${error}" th:text="${error}"></p>
+</div>
+<div th:fragment="managerConfirm" id="confirm-modal" class="confirm-backdrop" hidden role="dialog" aria-modal="true" aria-labelledby="confirm-title"><section class="confirm-card"><span class="eyebrow">PLEASE CONFIRM</span><h2 id="confirm-title">Are you sure?</h2><p data-confirm-message>Are you sure you want to continue?</p><div class="confirm-actions"><button type="button" class="button secondary" data-confirm-cancel>Go back</button><button type="button" class="button" data-confirm-proceed>Yes, continue</button></div></section></div>
+<div th:fragment="chatbot">
+  <meta name="_csrf" th:content="${_csrf.token}"><meta name="_csrf_header" th:content="${_csrf.headerName}">
+  <button id="chat-toggle" type="button" aria-label="Open hotel chat"><span class="chat-leaf" aria-hidden="true">m</span></button>
+
+  <section id="hotel-chat" hidden>
+    <header class="chat-header">
+      <div><strong>mtchlvr concierge</strong><small>Here to help with your stay</small></div>
+      <button id="chat-close" type="button" aria-label="Close chat">×</button>
+    </header>
+    <div id="chat-messages" aria-live="polite">
+      <p class="bot-message">Hello! 👋 Ask me about our rooms, prices, amenities, or hotel policies.</p>
+    </div>
+    <form id="chat-form">
+      <input id="chat-input" type="text" maxlength="1000"
+             placeholder="Ask a question..." required autocomplete="off">
+      <button id="chat-send" type="submit">Send</button>
+    </form>
+  </section>
+
+  <style>
+#chat-toggle{position:fixed;right:24px;bottom:24px;width:58px;height:58px;border:1px solid #d9e2d1;border-radius:20px 20px 20px 7px;background:#2A7C13;color:#FFF8CF;cursor:pointer;box-shadow:0 8px 24px #25461830;z-index:9999;display:grid;place-items:center}.chat-leaf{font-family:Georgia,serif;font-style:italic;font-size:32px;line-height:1}
+#hotel-chat{position:fixed;right:24px;bottom:94px;width:min(360px,calc(100vw - 32px));height:440px;max-height:70vh;background:#fffef9;border:1px solid #e8e7d9;border-radius:18px;box-shadow:0 18px 50px #25461822;z-index:9999;overflow:hidden;display:flex;flex-direction:column;color:#20351c;font:14px Inter,system-ui,sans-serif}#hotel-chat[hidden]{display:none}.chat-header{background:#2A7C13;color:#FFF8CF;padding:16px;display:flex;justify-content:space-between;align-items:center}.chat-header strong,.chat-header small{display:block}.chat-header small{margin-top:4px;opacity:.85}#chat-close{background:none;border:0;color:#FFF8CF;font-size:25px;cursor:pointer}
+#chat-messages{padding:14px;flex:1;overflow-y:auto;background:#fbfcf7}.bot-message,.user-message{padding:10px 12px;border-radius:12px;max-width:85%;overflow-wrap:anywhere;white-space:pre-wrap;line-height:1.5}.bot-message{background:#f1f4e9;margin:0 0 10px}.user-message{background:#2A7C13;color:white;margin:0 0 10px auto}#chat-form{display:flex;gap:8px;padding:10px;border-top:1px solid #e8e7d9}#chat-input{min-width:0;flex:1;padding:10px;border:1px solid #dfe4d7;border-radius:9px}#chat-send{background:#2A7C13;color:white;border:0;border-radius:9px;padding:0 14px;cursor:pointer}#chat-send:disabled{opacity:.6;cursor:wait}@media(max-width:580px){#chat-toggle{right:16px;bottom:16px}#hotel-chat{right:16px;bottom:84px}}
+</style>
+
+  <script>
+    (() => {
+      const toggle = document.getElementById('chat-toggle');
+      const panel = document.getElementById('hotel-chat');
+      const close = document.getElementById('chat-close');
+      const form = document.getElementById('chat-form');
+      const input = document.getElementById('chat-input');
+      const messages = document.getElementById('chat-messages');
+      const send = document.getElementById('chat-send');
+
+      toggle.addEventListener('click', () => {
+        panel.hidden = !panel.hidden;
+        if (!panel.hidden) input.focus();
+      });
+      close.addEventListener('click', () => panel.hidden = true);
+
+      function addMessage(text, className) {
+        const p = document.createElement('p');
+        p.className = className;
+        p.textContent = text;
+        messages.appendChild(p);
+        messages.scrollTop = messages.scrollHeight;
+      }
+
+      form.addEventListener('submit', async event => {
+        event.preventDefault();
+        const message = input.value.trim();
+        if (!message || send.disabled) return;
+
+        addMessage(message, 'user-message');
+        input.value = '';
+        send.disabled = true;
+        addMessage('Thinking…', 'bot-message');
+        const thinking = messages.lastElementChild;
+
+        try {
+          const response = await fetch('/api/chat', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              [document.querySelector('meta[name="_csrf_header"]')?.content || 'X-CSRF-TOKEN']: document.querySelector('meta[name="_csrf"]')?.content || ''
+            },
+            body: JSON.stringify({ message })
+          });
+          const data = await response.json();
+          thinking.remove();
+          if (!response.ok) throw new Error('Request failed');
+          addMessage(data.reply || 'Sorry, I could not answer that.', 'bot-message');
+        } catch (error) {
+          thinking.remove();
+          addMessage(error.message === "Request failed" ? "The chat service could not answer. Check that GROQ_API_KEY is set in your Codespace and restart the app." : "Sorry, chat is temporarily unavailable. Please try again.", 'bot-message');
+        } finally {
+          send.disabled = false;
+          input.focus();
+        }
+      });
+    })();
+  </script>
+</div>
+</body>
+</html>

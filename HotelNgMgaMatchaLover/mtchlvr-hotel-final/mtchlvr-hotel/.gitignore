@@ -1,0 +1,20 @@
+# Maven build output
+target/
+
+# Local SQLite database and related files
+data/*.db
+data/*.db-journal
+data/*.db-shm
+data/*.db-wal
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+
+# OS files
+.DS_Store
+Thumbs.db
+# Local database snapshots and source backups
+data/*.db.before-*
+*.bak*

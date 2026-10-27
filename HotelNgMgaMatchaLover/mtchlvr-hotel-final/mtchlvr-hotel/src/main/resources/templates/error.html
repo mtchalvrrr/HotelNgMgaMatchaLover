@@ -1,0 +1,4 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Something went wrong · mtchlvr hotel</title><link rel="stylesheet" href="/css/style.css"></head>
+<body class="auth-body"><a class="brand auth-brand" href="/"><span class="brand-mark">m</span><span>mtchlvr <small>HOTEL</small></span></a><main class="auth-card"><span class="eyebrow">SORRY ABOUT THAT</span><h1>Something went <em>wrong.</em></h1><p class="muted">The page could not be loaded. Please try again, or return to the hotel home page.</p><div th:if="${status}" class="alert error">Error code: <span th:text="${status}"></span></div><a class="button wide" href="/">Back to home</a><p class="auth-switch"><a href="/login">Return to sign in</a></p></main></body></html>

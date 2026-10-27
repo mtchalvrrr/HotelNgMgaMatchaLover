@@ -1,0 +1,109 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+<header th:fragment="nav" class="nav">
+  <a class="brand" href="/"><span class="brand-mark">m</span><span>mtchlvr <small>HOTEL</small></span></a>
+  <nav><a href="/rooms">Rooms</a><a sec:authorize="hasRole('CUSTOMER')" href="/customer/reservations">My reservations</a><a sec:authorize="hasRole('MANAGER')" href="/manager">Manager dashboard</a></nav>
+  <div class="nav-actions"><a class="text-button" href="/login" sec:authorize="isAnonymous()">Sign in</a><form th:action="@{/logout}" method="post" sec:authorize="isAuthenticated()"><button class="text-button" type="submit">Log out ↗</button></form></div>
+</header>
+<div th:fragment="alerts" class="alerts">
+  <p class="alert success" th:if="${success}" th:text="${success}"></p>
+  <p class="alert error" th:if="${error}" th:text="${error}"></p>
+</div>
+</body></html>
+
+<div th:fragment="chatbot" sec:authorize="hasRole('CUSTOMER')">
+  <button id="chat-toggle" type="button" aria-label="Open hotel chat">💬</button>
+
+  <section id="hotel-chat" hidden>
+    <header class="chat-header">
+      <div><strong>MatchaLover Assistant</strong><small>Hotel guest support</small></div>
+      <button id="chat-close" type="button" aria-label="Close chat">×</button>
+    </header>
+    <div id="chat-messages" aria-live="polite">
+      <p class="bot-message">Hello! 👋 Ask me about our rooms, prices, amenities, or hotel policies.</p>
+    </div>
+    <form id="chat-form">
+      <input id="chat-input" type="text" maxlength="1000"
+             placeholder="Ask a question..." required autocomplete="off">
+      <button id="chat-send" type="submit">Send</button>
+    </form>
+  </section>
+
+  <style>
+    #chat-toggle{position:fixed;right:24px;bottom:24px;width:58px;height:58px;border:0;border-radius:50%;background:#38664b;color:white;font-size:25px;cursor:pointer;box-shadow:0 4px 14px #0003;z-index:9999}
+    #hotel-chat{position:fixed;right:24px;bottom:94px;width:min(360px,calc(100vw - 32px));height:440px;max-height:70vh;background:#fff;border:1px solid #ddd;border-radius:16px;box-shadow:0 8px 30px #0003;z-index:9999;overflow:hidden;display:flex;flex-direction:column;color:#222;font:14px Arial,sans-serif}
+    #hotel-chat[hidden]{display:none}
+    .chat-header{background:#38664b;color:white;padding:14px;display:flex;justify-content:space-between;align-items:center}
+    .chat-header strong,.chat-header small{display:block}
+    .chat-header small{margin-top:4px;opacity:.85}
+    #chat-close{background:none;border:0;color:white;font-size:25px;cursor:pointer}
+    #chat-messages{padding:14px;flex:1;overflow-y:auto;background:#f7f8f6}
+    .bot-message,.user-message{padding:10px 12px;border-radius:12px;max-width:85%;overflow-wrap:anywhere;white-space:pre-wrap;line-height:1.4}
+    .bot-message{background:#e7eee8;margin:0 0 10px}
+    .user-message{background:#38664b;color:white;margin:0 0 10px auto}
+    #chat-form{display:flex;gap:8px;padding:10px;border-top:1px solid #ddd}
+    #chat-input{min-width:0;flex:1;padding:10px;border:1px solid #ccc;border-radius:8px}
+    #chat-send{background:#38664b;color:white;border:0;border-radius:8px;padding:0 14px;cursor:pointer}
+    #chat-send:disabled{opacity:.6;cursor:wait}
+  </style>
+
+  <script>
+    (() => {
+      const toggle = document.getElementById('chat-toggle');
+      const panel = document.getElementById('hotel-chat');
+      const close = document.getElementById('chat-close');
+      const form = document.getElementById('chat-form');
+      const input = document.getElementById('chat-input');
+      const messages = document.getElementById('chat-messages');
+      const send = document.getElementById('chat-send');
+
+      toggle.addEventListener('click', () => {
+        panel.hidden = !panel.hidden;
+        if (!panel.hidden) input.focus();
+      });
+      close.addEventListener('click', () => panel.hidden = true);
+
+      function addMessage(text, className) {
+        const p = document.createElement('p');
+        p.className = className;
+        p.textContent = text;
+        messages.appendChild(p);
+        messages.scrollTop = messages.scrollHeight;
+      }
+
+      form.addEventListener('submit', async event => {
+        event.preventDefault();
+        const message = input.value.trim();
+        if (!message || send.disabled) return;
+
+        addMessage(message, 'user-message');
+        input.value = '';
+        send.disabled = true;
+        addMessage('Thinking…', 'bot-message');
+        const thinking = messages.lastElementChild;
+
+        try {
+          const response = await fetch('/api/chat', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]')?.content || ''
+            },
+            body: JSON.stringify({ message })
+          });
+          const data = await response.json();
+          thinking.remove();
+          if (!response.ok) throw new Error('Request failed');
+          addMessage(data.reply || 'Sorry, I could not answer that.', 'bot-message');
+        } catch (error) {
+          thinking.remove();
+          addMessage('Sorry, chat is temporarily unavailable. Please try again.', 'bot-message');
+        } finally {
+          send.disabled = false;
+          input.focus();
+        }
+      });
+    })();
+  </script>
+</div>
