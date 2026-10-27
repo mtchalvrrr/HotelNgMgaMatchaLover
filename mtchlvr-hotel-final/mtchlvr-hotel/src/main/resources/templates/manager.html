@@ -12,7 +12,7 @@
     <main class="page-wrap manager-page">
         <div th:replace="~{fragments :: alerts}"></div>
 
-        <h1 class="page-title">Manager dashboard</h1>
+        <header class="manager-banner"><div><span class="eyebrow">FRONT DESK · OVERVIEW</span><h1 class="page-title">Manager dashboard</h1><p>Rooms, guest arrivals, and stay completions in one place.</p></div><a class="button cream-button" href="/manager/reservation-requests">Review requests ↗</a></header>
 
         <section id="overview" class="stats-grid">
             <div class="stat-card">
@@ -35,7 +35,7 @@
             <div class="section-heading">
                 <div><span class="eyebrow">ROOM SCHEDULE</span><h2>Occupancy &amp; reservation details</h2></div>
             </div>
-            <p class="muted">Pending and approved reservations block these dates. Rejected and cancelled reservations are excluded.</p>
+            <p class="muted">Active requests and confirmed stays reserve these dates; rejected and cancelled reservations do not.</p>
             <div class="table-wrap"><table>
                 <thead><tr><th>Room details</th><th>Guest / customer ID</th><th>Check-in</th><th>Check-out</th><th>Nights</th><th>Room charge</th><th>Status</th><th>Front desk</th></tr></thead>
                 <tbody>
