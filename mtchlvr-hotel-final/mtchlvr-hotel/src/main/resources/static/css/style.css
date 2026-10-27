@@ -52,6 +52,16 @@ body{font-weight:500}p,li,label,input,select,textarea,td{font-weight:600}.eyebro
 .photo-hero .sun,.photo-hero .arch,.photo-hero .art-label,.photo-hero .art-caption{display:none}
 .photo-hero .photo-overlay{z-index:0}
 .photo-hero .art-caption{display:block;position:absolute;bottom:22px;left:24px;color:#fff;letter-spacing:.12em;font-size:.68rem;z-index:1}
+
+/* Green-city hero treatment: the ivy-covered facade is the star, so let it
+   breathe across the whole hero and add a soft green wash for readability. */
+.hero-city{position:relative;background:linear-gradient(135deg,#eaf3e1,#fbfcf4) !important}
+.hero-city .hero-art.photo-hero{height:clamp(420px,52vw,620px);border-radius:32px 32px 18px 18px;box-shadow:0 26px 70px rgba(37,70,24,.18)}
+.hero-city .photo-overlay{background:linear-gradient(180deg,rgba(22,46,24,.12),rgba(22,46,24,.46))}
+.hero-city .art-label{display:block !important;position:absolute;top:28px;left:28px;z-index:2;color:#fffef9;text-shadow:0 2px 14px #10260f80;font-family:Georgia,serif;font-size:clamp(20px,2.2vw,30px);line-height:1.12;letter-spacing:-.02em}
+.hero-city .art-caption{font-size:.72rem;letter-spacing:.14em;color:#f4f7ec}
+.hero-city .hero-copy-lead{max-width:440px;font-size:clamp(15px,1.6vw,18px);color:#4d5e44;line-height:1.75;margin:14px 0 26px}
+@media(max-width:850px){.hero-city .hero-art.photo-hero{height:340px}}
 .report-message{max-width:380px;white-space:pre-wrap;overflow-wrap:anywhere}
 .password-field{display:flex;gap:8px;align-items:center}.password-field input{min-width:0;flex:1}.password-toggle{border:1px solid #d8d8cb;background:#f7f5ec;color:#38664b;border-radius:10px;padding:10px 12px;cursor:pointer;font:inherit}
 
@@ -65,13 +75,39 @@ body{font-weight:500}p,li,label,input,select,textarea,td{font-weight:600}.eyebro
 .photo-room:before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(25,39,27,.05),rgba(25,39,27,.48))}
 .photo-room .room-tag,.photo-room .room-number{color:#fff;text-shadow:0 1px 8px #0007}
 .photo-room .mini-arch{opacity:.38}
-.room-illustration.photo-room.standard{background-image:url("https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=1000&q=80")}
-.room-illustration.photo-room.deluxe{background-image:url("https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1000&q=80")}
-.room-illustration.photo-room.suite{background-image:url("https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=1000&q=80")}
-.room-illustration.photo-room.family{background-image:url("https://images.unsplash.com/photo-1566665797739-1674de7a421a?auto=format&fit=crop&w=1000&q=80")}
+.room-illustration.photo-room.standard{background-image:url("https://images.pexels.com/photos/31728412/pexels-photo-31728412.jpeg?auto=compress&cs=tinysrgb&w=900&h=600&fit=crop")}
+.room-illustration.photo-room.deluxe{background-image:url("https://images.pexels.com/photos/14547139/pexels-photo-14547139.jpeg?auto=compress&cs=tinysrgb&w=900&h=600&fit=crop")}
+.room-illustration.photo-room.suite{background-image:url("https://images.pexels.com/photos/8134775/pexels-photo-8134775.jpeg?auto=compress&cs=tinysrgb&w=900&h=600&fit=crop")}
+.room-illustration.photo-room.family{background-image:url("https://images.pexels.com/photos/29000006/pexels-photo-29000006.jpeg?auto=compress&cs=tinysrgb&w=900&h=600&fit=crop")}
+
+/* Larger room illustrations and bigger, easier-to-read room card text. */
+.room-illustration{height:240px}
+.room-tag{font-size:13px;padding:8px 13px;font-weight:850}
+.room-number{font-size:12px;letter-spacing:.14em}
+.room-info{padding:22px 20px}
+.room-info h3{font-size:22px;margin:0 0 6px}
+.room-info p{font-size:14px;color:#5b6a52;margin:0}
+.price strong{font-size:22px;font-weight:800}
+.price small{font-size:13px}
+@media(max-width:580px){.room-illustration{height:220px}.room-info h3{font-size:20px}.price strong{font-size:20px}}
 @media(max-width:580px){.history-disclosure>summary{padding:15px}}
 
 .manager-links{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:8px}.manager-link{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:22px;border:1px solid var(--line);border-radius:14px;background:#fff;font-size:14px;font-weight:800;color:var(--forest);transition:transform .18s,box-shadow .18s}.manager-link:hover{transform:translateY(-2px);box-shadow:var(--shadow)}.manager-link b{font-size:20px}@media(max-width:580px){.manager-links{grid-template-columns:1fr}.manager-link{padding:18px}}
+
+/* Manager two-column layout: sticky side panel + content. */
+.manager-page .page-wrap,.manager-page{max-width:1280px;margin:0 auto}
+.manager-layout{display:grid;grid-template-columns:260px minmax(0,1fr);gap:32px;align-items:start;margin-top:28px}
+.manager-side-panel{position:sticky;top:90px;display:flex;flex-direction:column;gap:18px;padding:24px 20px;border:1px solid var(--line);border-radius:16px;background:#fffefb;box-shadow:0 8px 24px rgba(37,70,24,.05)}
+.manager-side-panel-header{display:flex;flex-direction:column;gap:6px;padding-bottom:14px;border-bottom:1px solid var(--line)}
+.manager-side-panel-header h2{font-family:Georgia,serif;font-weight:500;font-size:24px;letter-spacing:-.04em;color:var(--forest);margin:6px 0 0}
+.manager-side-nav{display:flex;flex-direction:column;gap:6px}
+.manager-side-link{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 14px;border-radius:11px;background:#f6f8ef;color:var(--ink);font-size:13px;font-weight:800;letter-spacing:-.01em;transition:background .18s,color .18s,transform .18s}
+.manager-side-link:hover{background:var(--forest);color:#fff;transform:translateX(2px)}
+.manager-side-link b{font-size:16px;opacity:.7}
+.manager-side-note{font-size:11px;color:var(--muted);line-height:1.6;margin:0}
+.manager-content{min-width:0}
+.manager-content .page-title{margin-top:0}
+@media(max-width:900px){.manager-layout{grid-template-columns:1fr;gap:22px}.manager-side-panel{position:static;top:auto;flex-direction:row;flex-wrap:wrap;gap:14px;padding:18px}.manager-side-panel-header{flex:1 1 100%;border-bottom:1px solid var(--line);padding-bottom:12px}.manager-side-nav{flex-direction:row;flex-wrap:wrap;gap:8px;flex:1 1 100%}.manager-side-link{flex:1 1 auto;font-size:12px;padding:11px 12px}.manager-side-note{flex:1 1 100%}}
 
 /* Room reservation schedule popup — mtchlvr hotel theme */
 .room-availability-toggle {
@@ -240,3 +276,21 @@ body.availability-popup-open {
     animation: none;
   }
 }
+
+/* Real-time password validation rules and strength meter */
+.password-rules{list-style:none;display:grid;gap:6px;margin:10px 0 0;padding:0}
+.password-rules li{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:700;color:var(--muted)}
+.password-rules li:before{content:"○";font-size:13px;line-height:1}
+.password-rules li.rule-ok{color:#2a7c13}
+.password-rules li.rule-ok:before{content:"✓";color:#2a7c13}
+.password-rules li.rule-bad{color:#9a3e25}
+.password-rules li.rule-bad:before{content:"✕";color:#9a3e25}
+.password-strength{display:flex;align-items:center;gap:10px;margin-top:10px}
+.password-strength-bar{display:block;width:120px;height:8px;border-radius:8px;background:#e8e7d9;position:relative;overflow:hidden;transition:background .2s}
+.password-strength-bar.strength-0{background:#d9d3c4}
+.password-strength-bar.strength-1{background:#d98b73}
+.password-strength-bar.strength-2{background:#d9a93f}
+.password-strength-bar.strength-3{background:#76c457}
+.password-strength-bar.strength-4{background:#2a7c13}
+.password-strength-label{font-size:11px;font-weight:800;color:var(--muted)}
+

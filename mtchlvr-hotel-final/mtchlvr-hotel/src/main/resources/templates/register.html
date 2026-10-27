@@ -1,4 +1,4 @@
-<!doctype html><html lang="en" xmlns:th="http://www.thymeleaf.org"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Create account · mtchlvr hotel</title><link rel="stylesheet" href="/css/style.css"></head><body class="auth-body"><a class="brand auth-brand" href="/"><span class="brand-mark">m</span><span>mtchlvr <small>HOTEL</small></span></a><main class="auth-card"><span class="eyebrow">MAKE YOURSELF AT HOME</span><h1>Your stay starts <em>here.</em></h1><p class="muted">Create your account and complete the quick security check.</p><form th:action="@{/register}" th:object="${form}" method="post" class="stack-form" autocomplete="off"><div th:if="${#fields.hasErrors('*')}" class="alert error">Please review the highlighted details and try again.</div><label>Full name<input th:field="*{fullName}" required minlength="2" maxlength="80" autocomplete="off"><small th:errors="*{fullName}"></small></label><label>Email address<input type="email" th:field="*{email}" required maxlength="160" autocomplete="off"><small th:errors="*{email}"></small></label><label>Password<div class="password-field"><input id="registerPassword" type="password" th:field="*{password}" required minlength="10" maxlength="72" autocomplete="new-password"><button type="button" class="password-toggle" data-password-toggle="registerPassword" aria-label="Show password" aria-pressed="false">Show</button></div><small>At least 10 characters, including uppercase and lowercase letters, a number, and a special symbol. Spaces are not allowed.</small><small th:errors="*{password}"></small></label><label>Confirm password<div class="password-field"><input id="confirmPassword" type="password" th:field="*{confirmPassword}" required autocomplete="new-password"><button type="button" class="password-toggle" data-password-toggle="confirmPassword" aria-label="Show confirm password" aria-pressed="false">Show</button></div><small th:errors="*{confirmPassword}"></small></label><div class="captcha-wrap"><div class="g-recaptcha" th:attr="data-sitekey=${@environment.getProperty('google.recaptcha.site-key', '')}"></div><small class="muted">Complete Google reCAPTCHA to create your account.</small><small th:if="${#fields.hasGlobalErrors()}" th:each="err : ${#fields.globalErrors()}" th:text="${err}"></small></div><button class="button wide" type="submit">Create account ↗</button></form><p class="auth-switch">Already a guest? <a href="/login">Sign in</a></p></main><script src="https://www.google.com/recaptcha/api.js" async defer></script><script src="/js/app.js"></script><div th:replace="~{fragments :: chatbot}"></div>
+<!doctype html><html lang="en" xmlns:th="http://www.thymeleaf.org"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Create account · mtchlvr hotel</title><link rel="stylesheet" href="/css/style.css"></head><body class="auth-body"><a class="brand auth-brand" href="/"><span class="brand-mark">m</span><span>mtchlvr <small>HOTEL</small></span></a><main class="auth-card"><span class="eyebrow">MAKE YOURSELF AT HOME</span><h1>Your stay starts <em>here.</em></h1><p class="muted">Create your account and complete the quick security check.</p><form th:action="@{/register}" th:object="${form}" method="post" class="stack-form" autocomplete="off"><div th:if="${#fields.hasErrors('*')}" class="alert error">Please review the highlighted details and try again.</div><label>Full name<input th:field="*{fullName}" required minlength="2" maxlength="80" autocomplete="off"><small th:errors="*{fullName}"></small></label><label>Email address<input type="email" th:field="*{email}" required maxlength="160" autocomplete="off"><small th:errors="*{email}"></small></label><label>Password<div class="password-field"><input id="registerPassword" type="password" th:field="*{password}" required minlength="10" maxlength="72" autocomplete="new-password"><button type="button" class="password-toggle" data-password-toggle="registerPassword" aria-label="Show password" aria-pressed="false">Show</button></div><small class="muted">At least 10 characters, including uppercase and lowercase letters, a number, and a special symbol. Spaces are not allowed.</small><small th:errors="*{password}"></small><ul class="password-rules" id="passwordRules" aria-live="polite"><li data-rule="length" class="rule-pending">10+ characters</li><li data-rule="upper" class="rule-pending">Uppercase letter</li><li data-rule="lower" class="rule-pending">Lowercase letter</li><li data-rule="number" class="rule-pending">Number</li><li data-rule="symbol" class="rule-pending">Special symbol</li><li data-rule="nospace" class="rule-pending">No spaces</li></ul><div class="password-strength" aria-hidden="true"><span class="password-strength-bar" id="passwordStrengthBar"></span><small class="password-strength-label" id="passwordStrengthLabel">Enter a password</small></div></label><label>Confirm password<div class="password-field"><input id="confirmPassword" type="password" th:field="*{confirmPassword}" required autocomplete="new-password"><button type="button" class="password-toggle" data-password-toggle="confirmPassword" aria-label="Show confirm password" aria-pressed="false">Show</button></div><small class="muted" id="confirmMatchHint">Re-enter your password to confirm.</small><small th:errors="*{confirmPassword}"></small></label><div class="captcha-wrap"><div class="g-recaptcha" th:attr="data-sitekey=${@environment.getProperty('google.recaptcha.site-key', '')}"></div><small class="muted">Complete Google reCAPTCHA to create your account.</small><small th:if="${#fields.hasGlobalErrors()}" th:each="err : ${#fields.globalErrors()}" th:text="${err}"></small></div><button class="button wide" type="submit">Create account ↗</button></form><p class="auth-switch">Already a guest? <a href="/login">Sign in</a></p></main><script src="https://www.google.com/recaptcha/api.js" async defer></script><script src="/js/app.js"></script><div th:replace="~{fragments :: chatbot}"></div>
 <script>
 (() => {
   const form = document.querySelector("form.stack-form");
@@ -21,6 +21,84 @@
       try { window.grecaptcha.reset(); } catch (_) {}
     }
   }
+
+  // Real-time password validation
+  const pwd = document.getElementById("registerPassword");
+  const confirm = document.getElementById("confirmPassword");
+  const rulesList = document.getElementById("passwordRules");
+  const strengthBar = document.getElementById("passwordStrengthBar");
+  const strengthLabel = document.getElementById("passwordStrengthLabel");
+  const confirmHint = document.getElementById("confirmMatchHint");
+
+  const ruleChecks = {
+    length: (v) => v.length >= 10,
+    upper: (v) => /[A-Z]/.test(v),
+    lower: (v) => /[a-z]/.test(v),
+    number: (v) => /\d/.test(v),
+    symbol: (v) => /[^A-Za-z0-9]/.test(v),
+    nospace: (v) => v.length === 0 || !/\s/.test(v),
+  };
+
+  function scorePassword(v) {
+    let score = 0;
+    if (v.length >= 10) score++;
+    if (v.length >= 14) score++;
+    if (/[A-Z]/.test(v) && /[a-z]/.test(v)) score++;
+    if (/\d/.test(v)) score++;
+    if (/[^A-Za-z0-9]/.test(v)) score++;
+    if (v.length >= 18) score++;
+    return Math.min(score, 4);
+  }
+
+  const strengthLabels = ["Too weak", "Weak", "Fair", "Strong", "Excellent"];
+  const strengthClasses = ["strength-0", "strength-1", "strength-2", "strength-3", "strength-4"];
+
+  function updateRules() {
+    if (!pwd || !rulesList) return;
+    const v = pwd.value;
+    let allPass = true;
+    rulesList.querySelectorAll("[data-rule]").forEach((li) => {
+      const key = li.dataset.rule;
+      const ok = ruleChecks[key] ? ruleChecks[key](v) : false;
+      li.classList.toggle("rule-ok", ok);
+      li.classList.toggle("rule-pending", !ok && v.length === 0);
+      li.classList.toggle("rule-bad", !ok && v.length > 0);
+      if (!ok) allPass = false;
+    });
+    if (strengthBar && strengthLabel) {
+      const s = v.length === 0 ? 0 : scorePassword(v);
+      strengthBar.className = "password-strength-bar " + strengthClasses[s];
+      strengthLabel.textContent = v.length === 0 ? "Enter a password" : strengthLabels[s];
+    }
+    return allPass;
+  }
+
+  function updateConfirm() {
+    if (!confirm || !confirmHint) return;
+    if (confirm.value.length === 0) {
+      confirmHint.textContent = "Re-enter your password to confirm.";
+      confirmHint.style.color = "";
+      confirm.setCustomValidity("");
+      return;
+    }
+    if (confirm.value === pwd.value) {
+      confirmHint.textContent = "Passwords match.";
+      confirmHint.style.color = "#2a7c13";
+      confirm.setCustomValidity("");
+    } else {
+      confirmHint.textContent = "Passwords do not match yet.";
+      confirmHint.style.color = "#9a3e25";
+      confirm.setCustomValidity("Passwords do not match.");
+    }
+  }
+
+  if (pwd) {
+    pwd.addEventListener("input", () => { updateRules(); updateConfirm(); });
+  }
+  if (confirm) {
+    confirm.addEventListener("input", updateConfirm);
+  }
+  updateRules();
 
   window.addEventListener("pageshow", (event) => {
     let navigationType = "";

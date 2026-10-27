@@ -10,6 +10,20 @@
   <p class="alert success" th:if="${success}" th:text="${success}"></p>
   <p class="alert error" th:if="${error}" th:text="${error}"></p>
 </div>
+<div th:fragment="managerSideNav" class="manager-side-panel" aria-label="Manager workspace">
+  <div class="manager-side-panel-header">
+    <span class="eyebrow">WORKSPACE</span>
+    <h2>Manage</h2>
+  </div>
+  <nav class="manager-side-nav">
+    <a class="manager-side-link" href="/manager"><span>Dashboard</span><b>↗</b></a>
+    <a class="manager-side-link" href="/manager/reservation-requests"><span>Reservation &amp; cancellation requests</span><b>↗</b></a>
+    <a class="manager-side-link" href="/manager/history"><span>Reservation history</span><b>↗</b></a>
+    <a class="manager-side-link" href="/manager/room-management"><span>Room management</span><b>↗</b></a>
+    <a class="manager-side-link" href="/manager/reports"><span>Reports</span><b>↗</b></a>
+  </nav>
+  <p class="manager-side-note">All management tools live here, in one place. Use the links above to jump between tasks.</p>
+</div>
 <div th:fragment="managerConfirm" id="confirm-modal" class="confirm-backdrop" hidden role="dialog" aria-modal="true" aria-labelledby="confirm-title"><section class="confirm-card"><span class="eyebrow">PLEASE CONFIRM</span><h2 id="confirm-title">Are you sure?</h2><p data-confirm-message>Are you sure you want to continue?</p><div class="confirm-actions"><button type="button" class="button secondary" data-confirm-cancel>Go back</button><button type="button" class="button" data-confirm-proceed>Yes, continue</button></div></section></div>
 <div th:fragment="chatbot">
   <meta name="_csrf" th:content="${_csrf.token}"><meta name="_csrf_header" th:content="${_csrf.headerName}">

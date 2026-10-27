@@ -1,24 +1,28 @@
 # Matcha Lover photography and icon sources
 
-This project uses a remote Unsplash photo in the homepage hero. The photo is loaded directly from Unsplash's image CDN; the project does not claim ownership of the photograph.
+This project uses remote stock photography loaded directly from image CDNs. The project does not claim ownership of the photographs.
 
-- Homepage hero photo: https://images.unsplash.com/photo-1611892440504-42a792e24d32
-- Source / photo discovery: https://unsplash.com/s/photos/hotel-room
-- Unsplash license: https://unsplash.com/license
-- Unsplash terms: https://unsplash.com/terms
+## Homepage hero (green-city vibes)
 
-The Unsplash license generally permits free use, including commercial use, without requiring attribution, but users should review the current license and the photographer/source page before deployment. The direct CDN URL is a remote asset and can change or become unavailable; for production, record the individual photo page and creator, download/host the licensed asset where permitted, and keep this documentation current.
+The homepage hero now uses an elegant ivy-covered hotel facade to evoke a green-city atmosphere.
+
+- Hero photo: https://images.pexels.com/photos/16094034/pexels-photo-16094034.jpeg
+- Photographer: Denisa Susca (Pexels)
+- Source page: https://www.pexels.com/photo/elegant-hotel-facade-covered-in-lush-ivy-located-in-urban-copenhagen-16094034/
+- Pexels license: https://www.pexels.com/license/
+
+## Room card photography
+
+Room cards use remote Pexels CDN photos, one per room type:
+
+- Standard — https://images.pexels.com/photos/31728412/pexels-photo-31728412.jpeg (Đậu Photograph)
+- Deluxe — https://images.pexels.com/photos/14547139/pexels-photo-14547139.jpeg (Rahib Yaqubov)
+- Suite — https://images.pexels.com/photos/8134775/pexels-photo-8134775.jpeg (Max Vakhtbovych)
+- Family — https://images.pexels.com/photos/29000006/pexels-photo-29000006.jpeg (Quang Nguyen Vinh)
+- Photo discovery: https://www.pexels.com/search/hotel%20room/
+
+Review the individual source pages, current license, and availability before production use. The images are remotely hosted, not generated, and may change or become unavailable.
 
 ## Icons
 
 The interface primarily uses text glyphs and CSS-drawn decorative elements rather than third-party icon files. No generated images are used.
-
-## Room card photography
-
-Room cards also use remote Unsplash CDN photos:
-- https://images.unsplash.com/photo-1611892440504-42a792e24d32
-- https://images.unsplash.com/photo-1590490360182-c33d57733427
-- https://images.unsplash.com/photo-1566665797739-1674de7a421a
-- Photo discovery: https://unsplash.com/s/photos/hotel-bedroom
-
-Review the individual source pages, current license, and availability before production use. The images are remotely hosted, not generated, and may change or become unavailable.
