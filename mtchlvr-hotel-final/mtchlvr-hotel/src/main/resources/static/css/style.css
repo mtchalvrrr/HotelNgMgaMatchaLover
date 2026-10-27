@@ -75,10 +75,10 @@ body{font-weight:500}p,li,label,input,select,textarea,td{font-weight:600}.eyebro
 .photo-room:before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(25,39,27,.05),rgba(25,39,27,.48))}
 .photo-room .room-tag,.photo-room .room-number{color:#fff;text-shadow:0 1px 8px #0007}
 .photo-room .mini-arch{opacity:.38}
-.room-illustration.photo-room.standard{background-image:url("https://images.pexels.com/photos/31728412/pexels-photo-31728412.jpeg?auto=compress&cs=tinysrgb&w=900&h=600&fit=crop")}
-.room-illustration.photo-room.deluxe{background-image:url("https://images.pexels.com/photos/14547139/pexels-photo-14547139.jpeg?auto=compress&cs=tinysrgb&w=900&h=600&fit=crop")}
-.room-illustration.photo-room.suite{background-image:url("https://images.pexels.com/photos/8134775/pexels-photo-8134775.jpeg?auto=compress&cs=tinysrgb&w=900&h=600&fit=crop")}
-.room-illustration.photo-room.family{background-image:url("https://images.pexels.com/photos/29000006/pexels-photo-29000006.jpeg?auto=compress&cs=tinysrgb&w=900&h=600&fit=crop")}
+.room-illustration.photo-room.standard{background-image:url("https://images.pexels.com/photos/29006838/pexels-photo-29006838.jpeg?auto=compress&cs=tinysrgb&h=650&w=940")}
+.room-illustration.photo-room.deluxe{background-image:url("https://images.pexels.com/photos/6467627/pexels-photo-6467627.jpeg?auto=compress&cs=tinysrgb&h=650&w=940")}
+.room-illustration.photo-room.suite{background-image:url("https://images.pexels.com/photos/18801079/pexels-photo-18801079.jpeg?auto=compress&cs=tinysrgb&h=650&w=940")}
+.room-illustration.photo-room.family{background-image:url("https://images.pexels.com/photos/29000006/pexels-photo-29000006.jpeg?auto=compress&cs=tinysrgb&h=650&w=940")}
 
 /* Larger room illustrations and bigger, easier-to-read room card text. */
 .room-illustration{height:240px}

@@ -15,9 +15,9 @@ The homepage hero now uses an elegant ivy-covered hotel facade to evoke a green-
 
 Room cards use remote Pexels CDN photos, one per room type:
 
-- Standard — https://images.pexels.com/photos/31728412/pexels-photo-31728412.jpeg (Đậu Photograph)
-- Deluxe — https://images.pexels.com/photos/14547139/pexels-photo-14547139.jpeg (Rahib Yaqubov)
-- Suite — https://images.pexels.com/photos/8134775/pexels-photo-8134775.jpeg (Max Vakhtbovych)
+- Standard — https://images.pexels.com/photos/29006838/pexels-photo-29006838.jpeg (Ken Mwaura)
+- Deluxe — https://images.pexels.com/photos/6467627/pexels-photo-6467627.jpeg (cottonbro studio)
+- Suite — https://images.pexels.com/photos/18801079/pexels-photo-18801079.jpeg (Stiven Rivera)
 - Family — https://images.pexels.com/photos/29000006/pexels-photo-29000006.jpeg (Quang Nguyen Vinh)
 - Photo discovery: https://www.pexels.com/search/hotel%20room/
 
