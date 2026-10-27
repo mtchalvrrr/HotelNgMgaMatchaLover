@@ -37,7 +37,8 @@ public class ReservationService {
     }
 
     private boolean overlaps(LocalDateTime start, LocalDateTime end, Reservation existing) {
-        return start.isBefore(this.end(existing)) && end.isAfter(this.start(existing));
+        // Leave a 30-minute cleaning buffer after the previous guest checks out.
+        return start.isBefore(this.end(existing).plusMinutes(30)) && end.isAfter(this.start(existing));
     }
 
     public boolean isAvailable(Room room, LocalDate in, LocalDate out) {

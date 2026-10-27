@@ -1,24 +1,9 @@
 # Matcha Lover photography and icon sources
 
-This project uses a remote Unsplash photo in the homepage hero. The photo is loaded directly from Unsplash's image CDN; the project does not claim ownership of the photograph.
+## Hotel photography
 
-- Homepage hero photo: https://images.unsplash.com/photo-1611892440504-42a792e24d32
-- Source / photo discovery: https://unsplash.com/s/photos/hotel-room
-- Unsplash license: https://unsplash.com/license
-- Unsplash terms: https://unsplash.com/terms
-
-The Unsplash license generally permits free use, including commercial use, without requiring attribution, but users should review the current license and the photographer/source page before deployment. The direct CDN URL is a remote asset and can change or become unavailable; for production, record the individual photo page and creator, download/host the licensed asset where permitted, and keep this documentation current.
+The homepage, guest and manager banners, and room cards use the resort image supplied by the repository owner. The uploaded source image is stored without modification at `mtchlvr-hotel-final/mtchlvr-hotel/src/main/resources/static/images/mtchlvr-resort.jpg`. It contains a visible credit mark; cover crops may hide part of it. The original photographer and usage license were not supplied, so confirm publication rights before production use. The photographer and usage license were not supplied with the image, so confirm publication rights before production use.
 
 ## Icons
 
-The interface primarily uses text glyphs and CSS-drawn decorative elements rather than third-party icon files. No generated images are used.
-
-## Room card photography
-
-Room cards also use remote Unsplash CDN photos:
-- https://images.unsplash.com/photo-1611892440504-42a792e24d32
-- https://images.unsplash.com/photo-1590490360182-c33d57733427
-- https://images.unsplash.com/photo-1566665797739-1674de7a421a
-- Photo discovery: https://unsplash.com/s/photos/hotel-bedroom
-
-Review the individual source pages, current license, and availability before production use. The images are remotely hosted, not generated, and may change or become unavailable.
+The interface primarily uses text glyphs and CSS-drawn decorative elements rather than third-party icon files.

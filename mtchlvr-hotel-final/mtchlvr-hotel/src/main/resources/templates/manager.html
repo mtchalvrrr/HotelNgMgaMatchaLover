@@ -12,7 +12,7 @@
     <main class="page-wrap manager-page">
         <div th:replace="~{fragments :: alerts}"></div>
 
-        <h1 class="page-title">Manager dashboard</h1>
+        <header class="manager-banner"><div><span class="eyebrow">FRONT DESK · OVERVIEW</span><h1 class="page-title">Manager dashboard</h1><p>Rooms, guest arrivals, and stay completions in one place.</p></div><a class="button cream-button" href="/manager/reservation-requests">Review requests ↗</a></header>
 
         <section id="overview" class="stats-grid">
             <div class="stat-card">
@@ -35,21 +35,34 @@
             <div class="section-heading">
                 <div><span class="eyebrow">ROOM SCHEDULE</span><h2>Occupancy &amp; reservation details</h2></div>
             </div>
-            <p class="muted">Pending and approved reservations block these dates. Rejected and cancelled reservations are excluded.</p>
+            <p class="muted">Active requests and confirmed stays reserve these dates; rejected and cancelled reservations do not.</p>
             <div class="table-wrap"><table>
-                <thead><tr><th>Room details</th><th>Occupant customer ID</th><th>Check-in</th><th>Check-out</th><th>Nights</th><th>Room charge</th><th>Status</th></tr></thead>
+                <thead><tr><th>Room details</th><th>Guest / customer ID</th><th>Check-in</th><th>Check-out</th><th>Nights</th><th>Room charge</th><th>Status</th><th>Front desk</th></tr></thead>
                 <tbody>
                     <tr th:each="r : ${occupancyReservations}">
                         <td><strong th:text="|${r.room.type} · ${r.room.roomNumber}|">Deluxe · 201</strong>
                             <span class="cell-sub" th:text="|₱${#numbers.formatDecimal(r.room.nightlyRate,1,'COMMA',2,'POINT')} per night|">₱1,800.00 per night</span></td>
-                        <td th:text="${r.customer.customerCode}">mtchlvr-0000-5201314</td>
-                        <td th:text="${r.checkIn}">2026-10-14</td>
-                        <td th:text="${r.checkOut}">2026-10-16</td>
+                        <td><strong th:text="${r.customer.fullName}">Guest Name</strong>
+                            <span class="cell-sub" th:text="${r.customer.email}">guest@example.com</span>
+                            <span class="cell-sub" th:text="${r.customer.customerCode}">mtchlvr-0000-5201314</span></td>
+                        <td><span th:text="${r.checkIn}">2026-10-14</span>
+                            <span class="cell-sub" th:text="${r.checkInTime != null ? r.checkInTime : '14:00'}">14:00</span></td>
+                        <td><span th:text="${r.checkOut}">2026-10-16</span>
+                            <span class="cell-sub" th:text="${r.checkOutTime != null ? r.checkOutTime : '12:00'}">12:00</span></td>
                         <td th:text="${r.nights}">2</td>
                         <td th:text="|₱${#numbers.formatDecimal(r.totalCost,1,'COMMA',2,'POINT')}|">₱3,600.00</td>
                         <td><span class="status" th:text="${r.status}" th:classappend="${r.status.toLowerCase()}">PENDING</span></td>
+                        <td>
+                            <form th:if="${r.status == 'APPROVED'}" th:action="@{'/manager/reservations/' + ${r.id} + '/check-in'}" method="post" data-confirm="Confirm that this guest has arrived and their check-in details have been verified?">
+                                <button class="button tiny" type="submit">Check in</button>
+                            </form>
+                            <form th:if="${r.status == 'CHECKED_IN'}" th:action="@{'/manager/reservations/' + ${r.id} + '/check-out'}" method="post" data-confirm="Confirm that this guest has checked out? This will complete the stay and allow the guest to leave a rating.">
+                                <button class="button tiny" type="submit">Check out</button>
+                            </form>
+                            <span th:if="${r.status != 'APPROVED' and r.status != 'CHECKED_IN'}" class="muted">—</span>
+                        </td>
                     </tr>
-                    <tr th:if="${#lists.isEmpty(occupancyReservations)}"><td colspan="7" class="muted">No active reservation dates to display.</td></tr>
+                    <tr th:if="${#lists.isEmpty(occupancyReservations)}"><td colspan="8" class="muted">No active reservation dates to display.</td></tr>
                 </tbody>
             </table></div>
         </section>
