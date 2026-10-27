@@ -3,6 +3,7 @@ package com.mtchlvr.hotel.model;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.LocalDateTime;
 import java.time.Instant;
 
 @Entity
@@ -25,6 +26,10 @@ public class Reservation {
     @Column(nullable = false) private Instant createdAt = Instant.now();
     // Soft-hide a processed record from manager history without deleting the reservation itself.
     @Column private Boolean historyVisible = true;
+    @Column(name = "actual_check_in_at") private LocalDateTime actualCheckInAt;
+    @Column(name = "actual_check_out_at") private LocalDateTime actualCheckOutAt;
+    @Column(name = "stay_rating") private Integer stayRating;
+    @Column(name = "stay_review", length = 1000) private String stayReview;
 
     protected Reservation() {}
     public Reservation(AppUser customer, Room room, LocalDate checkIn, LocalDate checkOut) {
@@ -65,6 +70,14 @@ public class Reservation {
     public String getStatus() { return status; }
     public String getStatusBeforeCancellation() { return statusBeforeCancellation; }
     public Instant getCreatedAt() { return createdAt; }
+    public LocalDateTime getActualCheckInAt() { return actualCheckInAt; }
+    public LocalDateTime getActualCheckOutAt() { return actualCheckOutAt; }
+    public Integer getStayRating() { return stayRating; }
+    public String getStayReview() { return stayReview; }
+    public void setActualCheckInAt(LocalDateTime value) { actualCheckInAt = value; }
+    public void setActualCheckOutAt(LocalDateTime value) { actualCheckOutAt = value; }
+    public void setStayRating(Integer value) { stayRating = value; }
+    public void setStayReview(String value) { stayReview = value; }
     public boolean isHistoryVisible() { return historyVisible == null || historyVisible; }
     public void setHistoryVisible(boolean visible) { historyVisible = visible; }
     public void setStatus(String v) { status = v; }

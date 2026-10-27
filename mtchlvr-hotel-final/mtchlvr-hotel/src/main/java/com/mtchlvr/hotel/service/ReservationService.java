@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.List;
 
 @Service
@@ -116,6 +117,41 @@ public class ReservationService {
         if ("CANCELLATION_REQUESTED".equals(currentStatus)) {
             reservation.setStatusBeforeCancellation(null);
         }
+        return reservations.save(reservation);
+    }
+
+    @Transactional
+    public Reservation checkIn(Long reservationId) {
+        Reservation reservation = reservations.findById(reservationId)
+            .orElseThrow(() -> new IllegalArgumentException("Reservation not found."));
+        if (!"APPROVED".equals(reservation.getStatus())) {
+            throw new IllegalArgumentException("Only approved reservations can check in.");
+        }
+
+        ZoneId zone = ZoneId.of("Asia/Manila");
+        LocalDateTime now = LocalDateTime.now(zone).withNano(0);
+        if (now.toLocalDate().isBefore(reservation.getCheckIn())) {
+            throw new IllegalArgumentException("Check-in is not available before the reservation date.");
+        }
+        if (!now.isBefore(end(reservation))) {
+            throw new IllegalArgumentException("The scheduled checkout time has passed. Contact the manager.");
+        }
+
+        reservation.setActualCheckInAt(now);
+        reservation.setStatus("CHECKED_IN");
+        return reservations.save(reservation);
+    }
+
+    @Transactional
+    public Reservation checkOut(Long reservationId) {
+        Reservation reservation = reservations.findById(reservationId)
+            .orElseThrow(() -> new IllegalArgumentException("Reservation not found."));
+        if (!"CHECKED_IN".equals(reservation.getStatus())) {
+            throw new IllegalArgumentException("Only checked-in guests can check out.");
+        }
+
+        reservation.setActualCheckOutAt(LocalDateTime.now(ZoneId.of("Asia/Manila")).withNano(0));
+        reservation.setStatus("COMPLETED");
         return reservations.save(reservation);
     }
 

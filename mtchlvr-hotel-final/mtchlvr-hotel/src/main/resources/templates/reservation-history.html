@@ -1,1 +1,36 @@
-<!doctype html><html lang="en" xmlns:th="http://www.thymeleaf.org"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Reservation history · mtchlvr hotel</title><link rel="stylesheet" href="/css/style.css"></head><body><div th:replace="~{fragments :: nav}"></div><main class="page-wrap"><div th:replace="~{fragments :: alerts}"></div><h1 class="page-title">Reservation history</h1><a class="under-link" href="/manager">← Dashboard</a><div class="section-heading" style="margin-top:28px"><span class="muted">Processed reservations and cancellations</span><form th:if="${!#lists.isEmpty(reservations.?[status != 'PENDING' and status != 'CANCELLATION_REQUESTED' and (historyVisible == null or historyVisible)])}" th:action="@{/manager/history/clear}" method="post" data-confirm="Permanently delete all processed history? Pending requests will remain. This cannot be undone."><button class="button tiny" type="submit">Delete all history</button></form></div><div th:if="${#lists.isEmpty(reservations.?[status != 'PENDING' and status != 'CANCELLATION_REQUESTED' and (historyVisible == null or historyVisible)])}" class="empty-state"><h2>No processed history yet.</h2></div><div class="table-wrap" th:unless="${#lists.isEmpty(reservations.?[status != 'PENDING' and status != 'CANCELLATION_REQUESTED'])}"><table><thead><tr><th>Guest</th><th>Room</th><th>Dates</th><th>Status</th><th>Action</th></tr></thead><tbody><tr th:each="r : ${reservations}" th:if="${r.status != 'PENDING' and r.status != 'CANCELLATION_REQUESTED' and (r.historyVisible == null or r.historyVisible)}"><td><strong th:text="${r.customer.fullName}">Guest</strong><small class="cell-sub" th:text="${r.customer.email}">Email</small></td><td th:text="${r.room.type} + ' · ' + ${r.room.roomNumber}">Room</td><td th:text="${r.checkIn} + ' → ' + ${r.checkOut}">Dates</td><td><span class="status" th:text="${r.status}" th:classappend="${r.status.toLowerCase()}">APPROVED</span></td><td><form th:action="@{'/manager/history/' + ${r.id} + '/delete'}" method="post" data-confirm="Permanently delete this history record? This cannot be undone."><button class="button tiny" type="submit">Delete</button></form></td></tr></tbody></table></div></main><script src="/js/app.js"></script></body></html>
+<!doctype html><html lang="en" xmlns:th="http://www.thymeleaf.org"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Reservation history · mtchlvr hotel</title><link rel="stylesheet" href="/css/style.css"></head><body><div th:replace="~{fragments :: nav}"></div><main class="page-wrap reservation-history-page"><div th:replace="~{fragments :: alerts}"></div><h1 class="page-title">Reservation history</h1><a class="under-link" href="/manager">← Dashboard</a>
+<form action="/manager/history" method="get" class="stack-form history-filter-form" style="margin:20px 0;display:flex;flex-wrap:wrap;gap:10px;align-items:end">
+<label>Search guest or room<input type="search" name="q" th:value="${searchQuery}" placeholder="Name, email, room number or type"></label>
+<label>Status<select name="status"><option value="">All statuses</option><option value="APPROVED" th:selected="${statusFilter == 'APPROVED'}">Approved</option><option value="CHECKED_IN" th:selected="${statusFilter == 'CHECKED_IN'}">Checked in</option><option value="COMPLETED" th:selected="${statusFilter == 'COMPLETED'}">Completed</option><option value="CANCELLED" th:selected="${statusFilter == 'CANCELLED'}">Cancelled</option><option value="REJECTED" th:selected="${statusFilter == 'REJECTED'}">Rejected</option></select></label>
+<label>From date<input type="date" name="from" th:value="${fromDate}"></label>
+<label>To date<input type="date" name="to" th:value="${toDate}"></label>
+<label>From date<input type="date" name="from"
+th:value="${fromDate}"></label>
+<label>To date<input type="date" name="to"
+th:value="${toDate}"></label>
+<label>Sort by<select name="sort">
+<option value="dateNewest" th:selected="${sortFilter == 'dateNewest'}">Newest stay first</option>
+<option value="dateOldest" th:selected="${sortFilter == 'dateOldest'}">Oldest stay first</option>
+<option value="guestAZ" th:selected="${sortFilter == 'guestAZ'}">Guest name A–Z</option>
+<option value="guestZA" th:selected="${sortFilter == 'guestZA'}">Guest name Z–A</option>
+<option value="roomAZ" th:selected="${sortFilter == 'roomAZ'}">Room</option>
+<option value="statusAZ" th:selected="${sortFilter == 'statusAZ'}">Status</option>
+</select></label>
+
+<button class="button tiny" type="submit">Search</button><a class="under-link" href="/manager/history">Clear</a>
+</form>
+<div class="section-heading" style="margin-top:28px"><span class="muted">Processed reservations and cancellations</span><form th:if="${!#lists.isEmpty(reservations.?[status != 'PENDING' and status != 'CANCELLATION_REQUESTED' and (historyVisible == null or historyVisible)])}" th:action="@{/manager/history/clear}" method="post" data-confirm="Permanently delete all processed history? Pending requests will remain. This cannot be undone."><button class="button tiny" type="submit">Delete all history</button></form></div><div th:if="${#lists.isEmpty(reservations.?[status != 'PENDING' and status != 'CANCELLATION_REQUESTED' and (historyVisible == null or historyVisible)])}" class="empty-state"><h2>No processed history yet.</h2></div><div class="table-wrap" th:unless="${#lists.isEmpty(reservations.?[status != 'PENDING' and status != 'CANCELLATION_REQUESTED'])}"><table><thead><tr><th>Guest</th><th>Room</th><th>Dates</th><th>Status</th><th>Action</th></tr></thead><tbody><tr th:each="r : ${reservations}" th:if="${r.status != 'PENDING' and r.status != 'CANCELLATION_REQUESTED' and (r.historyVisible == null or r.historyVisible)}"><td><strong th:text="${r.customer.fullName}">Guest</strong><small class="cell-sub" th:text="${r.customer.email}">Email</small></td><td th:text="${r.room.type} + ' · ' + ${r.room.roomNumber}">Room</td><td th:text="${r.checkIn} + ' → ' + ${r.checkOut}">Dates</td><td><span class="status" th:text="${r.status}" th:classappend="${r.status.toLowerCase()}">APPROVED</span></td><td><div style="display:flex;flex-direction:column;align-items:flex-start;gap:8px">
+<form th:if="${r.status == 'APPROVED'}" th:action="@{'/manager/reservations/' + ${r.id} + '/check-in'}" method="post" data-confirm="Record this guest's check-in?"><button class="button tiny" type="submit">Check in</button></form>
+<form th:if="${r.status == 'CHECKED_IN'}" th:action="@{'/manager/reservations/' + ${r.id} + '/check-out'}" method="post" data-confirm="Record this guest's checkout?"><button class="button tiny" type="submit">Check out</button></form>
+<form th:action="@{'/manager/history/' + ${r.id} + '/delete'}" method="post" data-confirm="Hide this history record? The reservation itself will be preserved."><button class="button tiny" type="submit">Hide</button></form>
+</div></td></tr></tbody></table></div></main><script src="/js/app.js"></script>
+<!-- Revalidate protected page after browser history restore -->
+<script>
+window.addEventListener("pageshow", function (event) {
+    if (event.persisted) {
+        window.location.reload();
+    }
+});
+</script>
+
+</body></html>

@@ -60,8 +60,26 @@ public class SecurityConfig {
                 .permitAll()
             )
             .logout(logout -> logout
-                .logoutSuccessUrl("/")
+                .invalidateHttpSession(true)
+                .clearAuthentication(true)
+                .deleteCookies("JSESSIONID")
+                .logoutSuccessHandler((request, response, authentication) -> {
+                    response.setHeader(
+                        "Cache-Control",
+                        "no-store, no-cache, must-revalidate, max-age=0"
+                    );
+                    response.setHeader("Pragma", "no-cache");
+                    response.setHeader("Expires", "0");
+                    response.sendRedirect(request.getContextPath() + "/");
+                })
                 .permitAll()
+            )
+            .exceptionHandling(exceptions -> exceptions
+                .accessDeniedHandler((request, response, exception) -> {
+                    response.sendRedirect(
+                        request.getContextPath() + "/login?denied"
+                    );
+                })
             )
             .csrf(csrf -> csrf.ignoringRequestMatchers("/api/chat"));
 

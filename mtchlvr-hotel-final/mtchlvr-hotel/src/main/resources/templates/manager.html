@@ -87,5 +87,15 @@
     </footer>
 
     <script src="/js/app.js"></script>
+
+<!-- Revalidate protected page after browser history restore -->
+<script>
+window.addEventListener("pageshow", function (event) {
+    if (event.persisted) {
+        window.location.reload();
+    }
+});
+</script>
+
 </body>
 </html>
